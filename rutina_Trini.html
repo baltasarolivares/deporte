@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rutina Gym</title>
+<style>
+:root{--bg:#0a0a0f;--card:#16151f;--card2:#1e1c2a;--accent:#c084fc;--rose:#f472b6;--green:#34d399;--blue:#60a5fa;--yellow:#fbbf24;--teal:#2dd4bf;--text:#f1f0f7;--muted:#7c7a9a;--border:#2a2838}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:90px}
+.header{background:linear-gradient(135deg,#1a1628,#0d0b14);padding:20px 18px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.header h1{font-size:19px;font-weight:800;background:linear-gradient(90deg,#c084fc,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{font-size:12px;color:var(--muted);margin-top:2px}
+.hstats{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.stat{background:var(--card2);border-radius:7px;padding:4px 9px;font-size:11px;color:var(--muted)}
+.stat span{color:var(--text);font-weight:600}
+.tabs{display:flex;overflow-x:auto;padding:10px 14px;gap:7px;background:var(--bg);border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:76px;z-index:99}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.content{display:none;padding:13px}
+.content.active{display:block}
+
+/* DAY HEADERS */
+.dhead{border-radius:14px;padding:14px;margin-bottom:11px;background:var(--card)}
+.dhead.a{border-left:4px solid var(--accent)}
+.dhead.b{border-left:4px solid var(--blue)}
+.dhead.c{border-left:4px solid var(--teal)}
+.dhead.d{border-left:4px solid var(--rose)}
+.dhead.info{border-left:4px solid var(--yellow)}
+.dlabel{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.dlabel.a{color:var(--accent)}.dlabel.b{color:var(--blue)}.dlabel.c{color:var(--teal)}.dlabel.d{color:var(--rose)}.dlabel.info{color:var(--yellow)}
+.dtitle{font-size:22px;font-weight:900;line-height:1.1}
+.dsub{font-size:13px;color:var(--muted);margin-top:3px}
+.dmeta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.badge{background:var(--card2);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--muted)}
+.badge.pri{background:rgba(192,132,252,.15);color:var(--accent);border:1px solid rgba(192,132,252,.3)}
+.badge.prib{background:rgba(96,165,250,.15);color:var(--blue);border:1px solid rgba(96,165,250,.3)}
+.badge.pric{background:rgba(45,212,191,.15);color:var(--teal);border:1px solid rgba(45,212,191,.3)}
+.badge.prid{background:rgba(244,114,182,.15);color:var(--rose);border:1px solid rgba(244,114,182,.3)}
+
+/* TIME TOGGLE */
+.time-toggle{display:flex;background:var(--card2);border-radius:10px;padding:3px;margin-bottom:12px;gap:3px}
+.tt-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s}
+.tt-btn.active{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+
+/* EXERCISE */
+.stitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:14px 0 7px}
+.ex{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.ex.extra{border:1px dashed var(--border);opacity:.85}
+.exn{width:26px;height:26px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
+.exn.a{background:var(--accent)}.exn.b{background:var(--blue)}.exn.c{background:var(--teal)}.exn.d{background:var(--rose)}.exn.core{background:#555}.exn.plus{background:linear-gradient(135deg,var(--accent),var(--rose))}
+.exname{font-size:14px;font-weight:600;line-height:1.3}
+.exmeta{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.extag{background:var(--card2);border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600}
+.extag.a{color:var(--accent)}.extag.b{color:var(--blue)}.extag.c{color:var(--teal)}.extag.d{color:var(--rose)}.extag.n{color:var(--muted)}
+.exnote{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+.extra-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+
+/* SUPERSET */
+.superset{background:linear-gradient(135deg,rgba(192,132,252,.06),rgba(244,114,182,.06));border:1px solid rgba(192,132,252,.2);border-radius:12px;padding:12px;margin-bottom:8px}
+.ss-label{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.ss-item{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px}
+.ss-item:last-child{margin-bottom:0}
+
+/* TIP */
+.tip{background:var(--card);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.ticon{font-size:18px;flex-shrink:0;margin-top:1px}
+.ttext{font-size:12px;color:var(--muted);line-height:1.5}
+.ttext strong{color:var(--text)}
+
+/* INFO CARD */
+.infocard{border-radius:13px;padding:15px;margin-bottom:10px}
+.infocard.yellow{background:linear-gradient(135deg,#1a1500,#201a00);border:1px solid #3a3000}
+.infocard.rose{background:linear-gradient(135deg,#1a0a12,#200d16);border:1px solid #3a1525}
+.infocard h3{font-size:13px;font-weight:700;margin-bottom:7px}
+.infocard.yellow h3{color:var(--yellow)}.infocard.rose h3{color:var(--rose)}
+.infocard p{font-size:13px;line-height:1.55}
+.infocard.yellow p{color:#a09040}.infocard.rose p{color:#a06080}
+
+/* NUTRITION */
+.nutcard{background:var(--card);border-radius:13px;overflow:hidden;margin-bottom:8px}
+.nutheader{background:linear-gradient(135deg,#140d1a,#1a1020);padding:10px 13px;border-bottom:1px solid var(--border)}
+.nutheader h3{font-size:14px;font-weight:700;color:var(--accent)}
+.nutheader p{font-size:11px;color:var(--muted);margin-top:1px}
+.macros{display:flex;border-bottom:1px solid var(--border)}
+.macro{flex:1;padding:10px 5px;text-align:center;border-right:1px solid var(--border)}
+.macro:last-child{border-right:none}
+.mv{font-size:18px;font-weight:800}
+.mv.p{color:#f97316}.mv.c{color:var(--blue)}.mv.f{color:var(--yellow)}
+.ml{font-size:10px;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:.4px}
+.meals{padding:7px 12px 11px}
+.meal{padding:8px 0;border-bottom:1px solid var(--border)}
+.meal:last-child{border-bottom:none}
+.mtime{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.mname{font-size:13px;font-weight:600}
+.mdetail{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.mkcal{font-size:11px;color:var(--yellow);font-weight:600;margin-top:2px}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,.96);border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-around;backdrop-filter:blur(12px);z-index:100}
+.nb{background:none;border:none;color:var(--muted);font-size:10px;font-weight:600;text-align:center;cursor:pointer;padding:4px 6px;border-radius:8px}
+.nb .ni{font-size:17px;display:block;margin-bottom:2px}
+.nb.active{color:var(--accent)}
+
+/* SECTIONS */
+#sec-semana,#sec-tips,#sec-nut{display:none;padding:13px}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.wd{background:var(--card);border-radius:10px;padding:9px 4px;text-align:center;cursor:pointer}
+.wdname{font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.4px}
+.wdicon{font-size:20px;margin:3px 0}
+.wdlabel{font-size:9px;color:var(--muted);font-weight:600;line-height:1.3}
+.pnote{background:linear-gradient(135deg,#0a120a,#0d180d);border:1px solid #1a3a1a;border-radius:12px;padding:13px;margin-bottom:9px}
+.pnote h3{font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px}
+.pnote p{font-size:12px;color:#5a8a5a;line-height:1.5}
+.pricard{background:var(--card);border-radius:12px;padding:12px;margin-bottom:8px}
+.pricard h4{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.priitem{font-size:13px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.priitem:last-child{border-bottom:none}
+.priitem .num{font-size:16px;font-weight:800;color:var(--text);width:20px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>✨ Rutina Gym — Goldman Mode</h1>
+  <p>Adaptable a tu tiempo real · Glúteos · Recomposición</p>
+  <div class="hstats">
+    <div class="stat">64 kg · <span>175 cm</span></div>
+    <div class="stat">3–4 días · <span>35–60 min</span></div>
+    <div class="stat">Meta: <span>Glúteos + definición</span></div>
+  </div>
+</div>
+
+<div class="tabs" id="mainTabs">
+  <div class="tab active" onclick="showTab('diaA')">DÍA A</div>
+  <div class="tab" onclick="showTab('diaB')">DÍA B</div>
+  <div class="tab" onclick="showTab('diaC')">DÍA C</div>
+  <div class="tab" onclick="showTab('diaD')">DÍA D</div>
+</div>
+
+<!-- DIA A -->
+<div class="content active" id="diaA">
+  <div class="dhead a">
+    <div class="dlabel a">Día A · Prioridad 1 — siempre primero</div>
+    <div class="dtitle">GLÚTEOS + ISQUIOS</div>
+    <div class="dsub">Hip hinge · Activación glútea · Cable</div>
+    <div class="dmeta">
+      <div class="badge pri">⭐ Prioridad 1</div>
+      <div class="badge">🏋️ Gym</div>
+    </div>
+  </div>
+
+  <div class="infocard yellow">
+    <h3>⏰ Seleccioná tu tiempo disponible hoy</h3>
+    <p>El botón de abajo cambia entre la versión express (35 min) y la completa (60 min). Los ejercicios marcados con ✦ son los extras del modo 60 min.</p>
+  </div>
+
+  <div class="time-toggle" id="toggleA">
+    <button class="tt-btn active" onclick="setTime('A','35')">⚡ 35 min</button>
+    <button class="tt-btn" onclick="setTime('A','60')">⏱ 60 min</button>
+  </div>
+
+  <div class="stitle">Calentamiento · 3 min</div>
+  <div class="tip"><div class="ticon">🔥</div><div class="ttext">Caminata en cinta inclinada 3 min + activación glútea en suelo: 15 puentes de glúteos, 15 abducción con banda. Esto es esencial — el glúteo hay que "despertarlo" antes de cargar.</div></div>
+
+  <div class="stitle">Ejercicios principales</div>
+  <div class="ex"><div class="exn a">1</div><div><div class="exname">Hip Thrust en Máquina o con Barra</div><div class="exmeta"><div class="extag a">4 series</div><div class="extag a">10–12 reps</div><div class="extag n">⏳ 75 seg</div></div><div class="exnote">El ejercicio más importante de toda la rutina. Empuja con los talones, aprieta el glúteo arriba 1 seg. Cargá progresivamente cada semana. Si hay máquina de hip thrust, úsala — es superior a la barra para el estímulo.</div></div></div>
+
+  <div class="ex"><div class="exn a">2</div><div><div class="exname">Peso Muerto Rumano (RDL) con Barra o Mancuernas</div><div class="exmeta"><div class="extag a">3 series</div><div class="extag a">10–12 reps</div><div class="extag n">⏳ 75 seg</div></div><div class="exnote">Piernas casi extendidas, baja hasta sentir el estiramiento de isquios. Espalda recta. El mejor ejercicio para isquiotibiales y glúteo inferior. Muy efectivo para la forma del glúteo.</div></div></div>
+
+  <div class="ex"><div class="exn a">3</div><div><div class="exname">Cable Kickback (patada de glúteo en polea)</div><div class="exmeta"><div class="extag a">3 series</div><div class="extag a">12–15 reps c/lado</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Polea baja con tobillera. Mantené el core apretado, no balancees el cuerpo. Contrae el glúteo en la cima. Aislamiento puro — define la forma del glúteo.</div></div></div>
+
+  <div class="ex"><div class="exn a">4</div><div><div class="exname">Máquina Abductora (apertura)</div><div class="exmeta"><div class="extag a">3 series</div><div class="extag a">15–20 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Peso moderado, movimiento completo y controlado. Trabaja el glúteo medio — clave para el aspecto redondeado del glúteo desde atrás. No uses peso tan alto que pierdas el rango.</div></div></div>
+
+  <!-- EXTRAS 60 MIN -->
+  <div id="extras-A" style="display:none">
+    <div class="extra-label">✦ Extras — modo 60 min</div>
+    <div class="ex extra"><div class="exn plus">5</div><div><div class="exname">Curl Femoral Sentado o Acostado (máquina)</div><div class="exmeta"><div class="extag a">3 series</div><div class="extag a">12 reps</div><div class="extag n">⏳ 60 seg</div></div><div class="exnote">Baja lento 3 seg, contrae fuerte arriba. Segundo estímulo de isquios — mejora la forma del muslo posterior y el glúteo inferior.</div></div></div>
+    <div class="ex extra"><div class="exn plus">6</div><div><div class="exname">Hip Thrust Unilateral (en banco, sin barra)</div><div class="exmeta"><div class="extag a">2 series</div><div class="extag a">15 reps c/lado</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Hombros en banco, un pie en el aire. Más desafío de equilibrio y mayor activación unilateral del glúteo.</div></div></div>
+    <div class="ex extra"><div class="exn core">7</div><div><div class="exname">Plancha Lateral</div><div class="exmeta"><div class="extag n">2 series</div><div class="extag n">30 seg c/lado</div><div class="extag n">⏳ 30 seg</div></div><div class="exnote">Activa el oblicuo y el glúteo medio. Fundamental para la cintura.</div></div></div>
+  </div>
+
+  <div class="stitle">Nutrición · Día de entreno (mañana)</div>
+  <div class="nutcard">
+    <div class="nutheader"><h3>~1.700 kcal</h3><p>Déficit moderado · Proteína alta · Práctico para oficina</p></div>
+    <div class="macros">
+      <div class="macro"><div class="mv p">130g</div><div class="ml">Proteína</div></div>
+      <div class="macro"><div class="mv c">160g</div><div class="ml">Carbs</div></div>
+      <div class="macro"><div class="mv f">60g</div><div class="ml">Grasas</div></div>
+    </div>
+    <div class="meals">
+      <div class="meal"><div class="mtime">Pre-gym o post-gym · 8–10h</div><div class="mname">Desayuno proteico express</div><div class="mdetail">Yogur griego 200g + granola 30g + fruta. O 3 huevos revueltos + 1 tostada integral. (menos de 5 min)</div><div class="mkcal">~380 kcal</div></div>
+      <div class="meal"><div class="mtime">Almuerzo · 13h (oficina)</div><div class="mname">Ensalada con proteína</div><div class="mdetail">Pechuga/salmón/atún 180g + base de hojas + tomate + aguacate ½ + vinagreta ligera. Pedir en el lunch del banco o traer.</div><div class="mkcal">~450 kcal</div></div>
+      <div class="meal"><div class="mtime">Snack · 17–18h</div><div class="mname">Snack de proteína</div><div class="mdetail">Barra de proteína (>20g prot) o yogur griego + frutos secos 20g. Tener en el cajón del escritorio.</div><div class="mkcal">~250 kcal</div></div>
+      <div class="meal"><div class="mtime">Cena · 21–22h</div><div class="mname">Cena rápida proteica</div><div class="mdetail">Salmón al horno 200g + vegetales salteados + arroz o papa 100g cocida. Menos de 20 min total.</div><div class="mkcal">~480 kcal</div></div>
+    </div>
+  </div>
+  <div class="tip"><div class="ticon">☕</div><div class="ttext"><strong>El café de Goldman no cuenta como hidratación.</strong> Cada café → un vaso de agua. Apunta a 2L de agua al día aunque sea difícil en días de reuniones.</div></div>
+</div>
+
+<!-- DIA B -->
+<div class="content" id="diaB">
+  <div class="dhead b">
+    <div class="dlabel b">Día B · Prioridad 2</div>
+    <div class="dtitle">TREN SUPERIOR + CORE</div>
+    <div class="dsub">Espalda · Hombros · Brazos · Abdomen</div>
+    <div class="dmeta">
+      <div class="badge prib">⭐⭐ Prioridad 2</div>
+      <div class="badge">🏋️ Gym</div>
+    </div>
+  </div>
+
+  <div class="tip"><div class="ticon">💡</div><div class="ttext"><strong>Este día construye la postura y el porte.</strong> 12 horas sentada frente a pantallas acorta los pectorales y debilita la espalda. Las filas y la espalda son lo más importante de este día.</div></div>
+
+  <div class="time-toggle" id="toggleB">
+    <button class="tt-btn active" onclick="setTime('B','35')">⚡ 35 min</button>
+    <button class="tt-btn" onclick="setTime('B','60')">⏱ 60 min</button>
+  </div>
+
+  <div class="stitle">Ejercicios principales</div>
+  <div class="ex"><div class="exn b">1</div><div><div class="exname">Remo en Polea Baja o Máquina</div><div class="exmeta"><div class="extag b">4 series</div><div class="extag b">10–12 reps</div><div class="extag n">⏳ 75 seg</div></div><div class="exnote">Espalda recta, jala hacia el abdomen. Retrae las escápulas. Esencial para corregir la postura de escritorio y construir la espalda.</div></div></div>
+
+  <div class="ex"><div class="exn b">2</div><div><div class="exname">Jalón al Pecho (polea alta)</div><div class="exmeta"><div class="extag b">3 series</div><div class="extag b">10–12 reps</div><div class="extag n">⏳ 75 seg</div></div><div class="exnote">Agarre un poco más ancho que hombros. Jala al pecho, codos hacia abajo. Da el ancho de espalda que mejora la silueta en ropa.</div></div></div>
+
+  <div class="ex"><div class="exn b">3</div><div><div class="exname">Press de Hombros en Máquina</div><div class="exmeta"><div class="extag b">3 series</div><div class="extag b">12 reps</div><div class="extag n">⏳ 60 seg</div></div><div class="exnote">Hombros fuertes y redondos mejoran la silueta general. Mantené el core activo para no arquear la espalda.</div></div></div>
+
+  <div class="ex"><div class="exn core">4</div><div><div class="exname">Plancha + Crunch de bicicleta</div><div class="exmeta"><div class="extag n">3 rondas</div><div class="extag n">30 seg + 15 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Plancha 30 seg sin pausa directo a 15 crunches de bicicleta (codo al rodilla opuesta). El abdomen trabaja bien con volumen moderado y constancia.</div></div></div>
+
+  <!-- EXTRAS 60 MIN -->
+  <div id="extras-B" style="display:none">
+    <div class="extra-label">✦ Extras — modo 60 min</div>
+    <div class="ex extra"><div class="exn plus">5</div><div><div class="exname">Elevaciones Laterales con Mancuernas</div><div class="exmeta"><div class="extag b">3 series</div><div class="extag b">15 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Peso ligero, sin inercia. Define el hombro lateral — el que da forma a la silueta desde el frente.</div></div></div>
+    <div class="ex extra"><div class="exn plus">6</div><div><div class="exname">Curl de Bíceps con Mancuernas</div><div class="exmeta"><div class="extag b">3 series</div><div class="extag b">12 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Codos fijos al cuerpo. Sube controlado, baja 2 seg.</div></div></div>
+    <div class="ex extra"><div class="exn plus">7</div><div><div class="exname">Extensión Tríceps en Polea (cuerda)</div><div class="exmeta"><div class="extag b">3 series</div><div class="extag b">12–15 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Codos pegados al cuerpo. Extiende completamente. Los tríceps son el 2/3 del brazo — importantes para el aspecto del brazo definido.</div></div></div>
+    <div class="ex extra"><div class="exn core">8</div><div><div class="exname">Elevación de Piernas Colgada o en Banco</div><div class="exmeta"><div class="extag n">3 series</div><div class="extag n">12 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Abdomen bajo. Controlá la bajada. Si es en barra de dominadas, mucho mejor.</div></div></div>
+  </div>
+  <div class="stitle">Nutrición · igual que Día A</div>
+  <div class="tip"><div class="ticon">🥗</div><div class="ttext">Los días de entreno la nutrición es la misma — <strong>~1.700 kcal con 130g de proteína</strong>. Ver detalle en Día A.</div></div>
+</div>
+
+<!-- DIA C -->
+<div class="content" id="diaC">
+  <div class="dhead c">
+    <div class="dlabel c">Día C · Prioridad 3</div>
+    <div class="dtitle">CUÁDRICEPS + GLÚTEOS</div>
+    <div class="dsub">Squat dominant · VMO · Pantorrillas</div>
+    <div class="dmeta">
+      <div class="badge pric">⭐⭐⭐ Prioridad 3</div>
+      <div class="badge">🏋️ Gym</div>
+    </div>
+  </div>
+
+  <div class="time-toggle" id="toggleC">
+    <button class="tt-btn active" onclick="setTime('C','35')">⚡ 35 min</button>
+    <button class="tt-btn" onclick="setTime('C','60')">⏱ 60 min</button>
+  </div>
+
+  <div class="stitle">Ejercicios principales</div>
+  <div class="ex"><div class="exn c">1</div><div><div class="exname">Sentadilla en Máquina Smith o Libre</div><div class="exmeta"><div class="extag c">4 series</div><div class="extag c">10 reps</div><div class="extag n">⏳ 90 seg</div></div><div class="exnote">Bajá a paralelo o más. Pies ligeramente afuera. El ejercicio compuesto más completo para cuádriceps y glúteos juntos.</div></div></div>
+
+  <div class="ex"><div class="exn c">2</div><div><div class="exname">Leg Press — pies altos y separados</div><div class="exmeta"><div class="extag c">3 series</div><div class="extag c">12 reps</div><div class="extag n">⏳ 75 seg</div></div><div class="exnote">Pies en la parte alta de la plataforma y más separados que normal. Esto recluta más glúteo y menos rodilla. Excelente para el bajo posterior del glúteo.</div></div></div>
+
+  <div class="ex"><div class="exn c">3</div><div><div class="exname">Sentadilla Búlgara con Mancuernas</div><div class="exmeta"><div class="extag c">3 series</div><div class="extag c">10 reps c/pierna</div><div class="extag n">⏳ 75 seg</div></div><div class="exnote">Pie trasero en banco. Baja lento 3 seg. Trabaja cuádriceps, glúteo y equilibrio. Muy efectiva para la definición de pierna. Difícil pero vale la pena.</div></div></div>
+
+  <div class="ex"><div class="exn c">4</div><div><div class="exname">Extensión de Cuádriceps — muy lenta</div><div class="exmeta"><div class="extag c">3 series</div><div class="extag c">15 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Subida 2 seg, sostené 1 seg arriba, bajada 4 seg. Este tempo lento hace que el cuádriceps trabaje mucho más que con repeticiones rápidas. No pongas demasiado peso — el estímulo viene del control, no de la carga.</div></div></div>
+
+  <!-- EXTRAS 60 MIN -->
+  <div id="extras-C" style="display:none">
+    <div class="extra-label">✦ Extras — modo 60 min</div>
+    <div class="ex extra"><div class="exn plus">5</div><div><div class="exname">Step-Up con Mancuernas</div><div class="exmeta"><div class="extag c">3 series</div><div class="extag c">12 reps c/pierna</div><div class="extag n">⏳ 60 seg</div></div><div class="exnote">Banco o cajón a la altura de rodilla. Subí empujando con el talón del pie de arriba. Activa glúteo y cuádriceps de manera funcional.</div></div></div>
+    <div class="ex extra"><div class="exn plus">6</div><div><div class="exname">Abductora (máquina) — peso moderado</div><div class="exmeta"><div class="extag c">3 series</div><div class="extag c">20 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Segundo estímulo del glúteo medio esta semana. Alto volumen y peso moderado para el acabado.</div></div></div>
+    <div class="ex extra"><div class="exn plus">7</div><div><div class="exname">Pantorrillas de Pie en Máquina</div><div class="exmeta"><div class="extag c">3 series</div><div class="extag c">20 reps</div><div class="extag n">⏳ 45 seg</div></div><div class="exnote">Rango completo — baja hasta el estiramiento. Las pantorrillas tonificadas mejoran la apariencia de toda la pierna.</div></div></div>
+  </div>
+  <div class="stitle">Nutrición · igual que Día A</div>
+  <div class="tip"><div class="ticon">🥗</div><div class="ttext">Los días de entreno la nutrición es la misma — <strong>~1.700 kcal con 130g de proteína</strong>. Ver detalle en Día A.</div></div>
+</div>
+
+<!-- DIA D -->
+<div class="content" id="diaD">
+  <div class="dhead d">
+    <div class="dlabel d">Día D · Prioridad 4 — si hay 4º día</div>
+    <div class="dtitle">FULL BODY EXPRESS</div>
+    <div class="dsub">Supersets · Máxima eficiencia · Glúteos extra</div>
+    <div class="dmeta">
+      <div class="badge prid">Opcional — 4º día</div>
+      <div class="badge">🏋️ Gym</div>
+      <div class="badge">⚡ Solo supersets</div>
+    </div>
+  </div>
+
+  <div class="tip"><div class="ticon">⚡</div><div class="ttext">Este día <strong>funciona en 30 min</strong> si vás rápido. Está diseñado en supersets (A+B sin descanso entre ellos) para maximizar el trabajo en poco tiempo. Perfecto para semanas caóticas.</div></div>
+
+  <div class="stitle">Supersets · Sin descanso dentro del par</div>
+
+  <div class="superset">
+    <div class="ss-label">Superset 1 — 3 rondas · descanso 75 seg entre rondas</div>
+    <div class="ss-item"><div class="exn d" style="width:24px;height:24px;font-size:11px">1A</div><div><div class="exname">Hip Thrust en máquina</div><div class="exmeta"><div class="extag d">10–12 reps</div></div><div class="exnote">Máxima contracción en la cima.</div></div></div>
+    <div class="ss-item"><div class="exn d" style="width:24px;height:24px;font-size:11px">1B</div><div><div class="exname">Sentadilla Goblet con Mancuerna</div><div class="exmeta"><div class="extag d">12 reps</div></div><div class="exnote">Mancuerna al pecho, sentadilla profunda.</div></div></div>
+  </div>
+
+  <div class="superset">
+    <div class="ss-label">Superset 2 — 3 rondas · descanso 60 seg entre rondas</div>
+    <div class="ss-item"><div class="exn d" style="width:24px;height:24px;font-size:11px">2A</div><div><div class="exname">Remo en Polea Baja</div><div class="exmeta"><div class="extag d">12 reps</div></div><div class="exnote">Espalda recta, contrae la espalda.</div></div></div>
+    <div class="ss-item"><div class="exn d" style="width:24px;height:24px;font-size:11px">2B</div><div><div class="exname">Press de Hombros con Mancuernas</div><div class="exmeta"><div class="extag d">12 reps</div></div><div class="exnote">Sentada o de pie, controlado.</div></div></div>
+  </div>
+
+  <div class="superset">
+    <div class="ss-label">Superset 3 — 3 rondas · descanso 60 seg entre rondas</div>
+    <div class="ss-item"><div class="exn d" style="width:24px;height:24px;font-size:11px">3A</div><div><div class="exname">Zancadas con Mancuernas (caminando)</div><div class="exmeta"><div class="extag d">10 reps c/pierna</div></div><div class="exnote">Paso largo, rodilla trasera casi al suelo.</div></div></div>
+    <div class="ss-item"><div class="exn d" style="width:24px;height:24px;font-size:11px">3B</div><div><div class="exname">Elevaciones Laterales</div><div class="exmeta"><div class="extag d">15 reps</div></div><div class="exnote">Peso ligero, sin balanceo.</div></div></div>
+  </div>
+
+  <div class="ex"><div class="exn d">4</div><div><div class="exname">Cable Kickback — finisher</div><div class="exmeta"><div class="extag d">2 series</div><div class="extag d">15 reps c/lado</div><div class="extag n">⏳ 30 seg</div></div><div class="exnote">Siempre terminar con trabajo de glúteo. Contrae fuerte en la cima.</div></div></div>
+
+  <div class="stitle">Nota sobre el 5º día (muy ocasional)</div>
+  <div class="tip"><div class="ticon">🌟</div><div class="ttext">Si en alguna semana llegas al 5to día, repetí el <strong>Día A</strong> (Glúteos + Isquios) en modo express ⚡ 35 min. Los glúteos toleran bien el volumen extra y es tu objetivo principal.</div></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="nb active" id="nav-rutina" onclick="showSection('rutina')"><span class="ni">🏋️</span>Rutina</button>
+  <button class="nb" id="nav-semana" onclick="showSection('semana')"><span class="ni">📅</span>Plan</button>
+  <button class="nb" id="nav-nut" onclick="showSection('nut')"><span class="ni">🥗</span>Nutrición</button>
+  <button class="nb" id="nav-tips" onclick="showSection('tips')"><span class="ni">💡</span>Tips</button>
+</div>
+
+<!-- PLAN SECTION -->
+<div id="sec-semana">
+  <div style="font-size:17px;font-weight:800;margin-bottom:12px">Cómo organizarte la semana</div>
+
+  <div class="pricard">
+    <h4>Si vas 3 días — la semana base</h4>
+    <div class="priitem"><div class="num">A</div><div>Glúteos + Isquios — siempre el 1er día de la semana</div></div>
+    <div class="priitem"><div class="num">B</div><div>Tren Superior + Core — 2do día</div></div>
+    <div class="priitem"><div class="num">C</div><div>Cuádriceps + Glúteos squat — 3er día</div></div>
+  </div>
+
+  <div class="pricard">
+    <h4>Si vas 4 días — la semana buena</h4>
+    <div class="priitem"><div class="num">A</div><div>Glúteos + Isquios</div></div>
+    <div class="priitem"><div class="num">B</div><div>Tren Superior + Core</div></div>
+    <div class="priitem"><div class="num">C</div><div>Cuádriceps + Glúteos</div></div>
+    <div class="priitem"><div class="num">D</div><div>Full Body Express (supersets)</div></div>
+  </div>
+
+  <div class="pricard">
+    <h4>Ejemplos de distribución en la semana</h4>
+    <div class="priitem"><span style="color:var(--muted);font-size:12px">Opción 1 (lun-mié-vie)</span></div>
+    <div class="priitem"><div class="num">A</div><div>Lunes</div></div>
+    <div class="priitem"><div class="num">B</div><div>Miércoles</div></div>
+    <div class="priitem"><div class="num">C</div><div>Viernes</div></div>
+    <div class="priitem" style="margin-top:8px"><span style="color:var(--muted);font-size:12px">Opción 2 (mar-jue-sáb)</span></div>
+    <div class="priitem"><div class="num">A</div><div>Martes</div></div>
+    <div class="priitem"><div class="num">B</div><div>Jueves</div></div>
+    <div class="priitem"><div class="num">C</div><div>Sábado</div></div>
+  </div>
+
+  <div class="pnote">
+    <h3>📌 Regla de oro</h3>
+    <p>Si en una semana solo podés ir 2 días, hacé <strong>A y C</strong> — los dos de piernas. El tren superior puede esperar más que el glúteo para el objetivo que tenés.</p>
+  </div>
+
+  <div class="tip"><div class="ticon">📈</div><div class="ttext"><strong>Progresión:</strong> subí 2,5 kg en el hip thrust cada 1-2 semanas. Anotá los pesos. Sin registro no hay progresión y sin progresión no hay resultados sostenidos.</div></div>
+</div>
+
+<!-- NUTRICIÓN SECTION -->
+<div id="sec-nut">
+  <div style="font-size:17px;font-weight:800;margin-bottom:12px">Nutrición · Goldman Mode</div>
+
+  <div class="infocard yellow">
+    <h3>⚠️ El contexto importa</h3>
+    <p>12 horas de trabajo de alta exigencia = cortisol elevado crónico. Esto dificulta la pérdida de grasa y favorece la retención en caderas y muslos. La solución no es un déficit agresivo — es un déficit moderado con proteína alta y sueño prioritario.</p>
+  </div>
+
+  <div class="nutcard">
+    <div class="nutheader"><h3>~1.700 kcal — Días de entreno</h3><p>Déficit de ~300-400 kcal · Proteína alta · Simple de seguir</p></div>
+    <div class="macros">
+      <div class="macro"><div class="mv p">130g</div><div class="ml">Proteína</div></div>
+      <div class="macro"><div class="mv c">160g</div><div class="ml">Carbs</div></div>
+      <div class="macro"><div class="mv f">60g</div><div class="ml">Grasas</div></div>
+    </div>
+    <div class="meals">
+      <div class="meal"><div class="mtime">Desayuno express · 8–9h (pre o post gym)</div><div class="mname">Proteína + carbs simples</div><div class="mdetail">Opción A: Yogur griego 200g + granola 30g + banana. Opción B: 3 huevos revueltos + 1 tostada. Menos de 5 min.</div><div class="mkcal">~380 kcal</div></div>
+      <div class="meal"><div class="mtime">Almuerzo · 13h</div><div class="mname">Proteína + ensalada (oficina)</div><div class="mdetail">Pedir: pechuga/salmón 180g + base verde + tomate + aguacate. Sin aderezo cremoso. O traer en tupper con proteína preparada el domingo.</div><div class="mkcal">~450 kcal</div></div>
+      <div class="meal"><div class="mtime">Snack escritorio · 17–18h</div><div class="mname">Proteína portátil</div><div class="mdetail">Barra proteica (>20g prot, <250 kcal) o yogur griego individual + 20g frutos secos. Tener siempre en el cajón.</div><div class="mkcal">~250 kcal</div></div>
+      <div class="meal"><div class="mtime">Cena · 21–22h</div><div class="mname">Cena rápida y proteica</div><div class="mdetail">Salmón/pechuga/huevos 200g + vegetales salteados (5 min) + opcional 100g papa o arroz. 15-20 min total.</div><div class="mkcal">~480 kcal</div></div>
+    </div>
+  </div>
+
+  <div class="nutcard">
+    <div class="nutheader"><h3>~1.500 kcal — Días sin entreno</h3><p>Déficit mayor · Menos carbos · Misma proteína</p></div>
+    <div class="macros">
+      <div class="macro"><div class="mv p">125g</div><div class="ml">Proteína</div></div>
+      <div class="macro"><div class="mv c">110g</div><div class="ml">Carbs</div></div>
+      <div class="macro"><div class="mv f">55g</div><div class="ml">Grasas</div></div>
+    </div>
+    <div class="meals">
+      <div class="meal"><div class="mtime">Desayuno</div><div class="mname">Huevos + café</div><div class="mdetail">3 huevos + té o café sin azúcar. Sin tostada los días de descanso.</div><div class="mkcal">~280 kcal</div></div>
+      <div class="meal"><div class="mtime">Almuerzo</div><div class="mname">Solo proteína + vegetales</div><div class="mdetail">Sin arroz ni papa. Proteína 180g + ensalada grande + aceite oliva.</div><div class="mkcal">~380 kcal</div></div>
+      <div class="meal"><div class="mtime">Snack</div><div class="mname">Yogur o barra</div><div class="mdetail">Igual que días de entreno.</div><div class="mkcal">~200 kcal</div></div>
+      <div class="meal"><div class="mtime">Cena</div><div class="mname">Ligera</div><div class="mdetail">200g pescado o pollo + vegetales + aguacate. Sin carbos nocturnos los días de descanso.</div><div class="mkcal">~400 kcal</div></div>
+    </div>
+  </div>
+
+  <div class="tip"><div class="ticon">📦</div><div class="ttext"><strong>Meal prep dominical:</strong> 30-40 min el domingo para dejar proteína cocida + vegetales lavados para 3 días. Es lo que hace sostenible la semana. Sin esto es muy difícil comer bien a las 10pm.</div></div>
+  <div class="tip"><div class="ticon">🍷</div><div class="ttext"><strong>Cultura de banca = salidas con alcohol.</strong> El alcohol frena la quema de grasa hasta 48h. No es prohibición — es información para tomar decisiones conscientes.</div></div>
+</div>
+
+<!-- TIPS SECTION -->
+<div id="sec-tips">
+  <div style="font-size:17px;font-weight:800;margin-bottom:12px">Tips Clave</div>
+  <div class="tip"><div class="ticon">🍑</div><div class="ttext"><strong>El hip thrust es el ejercicio.</strong> Si solo podés hacer una cosa, hacé hip thrust. Cargá progresivamente, semana a semana. Sin progresión de carga, los glúteos no crecen.</div></div>
+  <div class="tip"><div class="ticon">😴</div><div class="ttext"><strong>El sueño es la variable más importante.</strong> Con pocas horas de sueño el cortisol se dispara, la grelina (hormona del hambre) aumenta y la leptina baja. Imposible perder grasa sostenidamente durmiendo mal.</div></div>
+  <div class="tip"><div class="ticon">🔋</div><div class="ttext"><strong>No aumentes la exigencia del gym en semanas de mucho trabajo.</strong> Si estás en medio de un deal o en periodo de cierre, entrar con el modo ⚡ 35 min y salir es 100 veces mejor que no ir.</div></div>
+  <div class="tip"><div class="ticon">⚖️</div><div class="ttext"><strong>No te peses cada día.</strong> El peso de una mujer fluctúa 1-3 kg según el ciclo hormonal. Medite cada 2 semanas o fijate más en cómo te queda la ropa y en las fotos de progreso.</div></div>
+  <div class="tip"><div class="ticon">🪞</div><div class="ttext"><strong>Fotos cada 4 semanas</strong> — misma ropa, misma luz. Los cambios en el cuerpo son lentos y el ojo no los ve día a día. La foto te muestra la diferencia real.</div></div>
+  <div class="tip"><div class="ticon">🦵</div><div class="ttext"><strong>La definición de pierna llega con el déficit.</strong> A medida que se pierde grasa general, las zonas que antes se veían sin forma (cara interna de rodilla, muslo interno) empiezan a cambiar. Las extensiones lentas de cuádriceps ayudan a que esa zona se vea más tonificada mientras baja la grasa. Proceso gradual, pero consistente.</div></div>
+  <div class="tip"><div class="ticon">🎯</div><div class="ttext"><strong>Timeline realista:</strong> con consistencia de 3-4 días/semana y nutrición adecuada, en 3 meses hay cambios claros en glúteos y definición general. En 6 meses el físico cambia notablemente.</div></div>
+  <div class="tip"><div class="ticon">🧘</div><div class="ttext"><strong>El gym no es otro trabajo más.</strong> Que sea el momento del día donde la cabeza se desconecta. Sin teléfono durante los sets — aparte de mejores resultados, es el único momento de mindfulness real en un día de banca.</div></div>
+</div>
+
+<script>
+function showTab(day){
+  document.querySelectorAll('.content').forEach(c=>{c.classList.remove('active');c.style.display='none'});
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  var el=document.getElementById(day);
+  el.classList.add('active');el.style.display='block';
+  var days=['diaA','diaB','diaC','diaD'];
+  document.querySelectorAll('.tab')[days.indexOf(day)].classList.add('active');
+  showSection('rutina',true);
+}
+function setTime(day,t){
+  var toggle=document.getElementById('toggle'+day);
+  var btns=toggle.querySelectorAll('.tt-btn');
+  btns.forEach(b=>b.classList.remove('active'));
+  btns[t==='35'?0:1].classList.add('active');
+  var extras=document.getElementById('extras-'+day);
+  if(extras){extras.style.display=t==='60'?'block':'none';}
+}
+function showSection(s,silent){
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  var tabs=document.getElementById('mainTabs');
+  var sem=document.getElementById('sec-semana');
+  var tips=document.getElementById('sec-tips');
+  var nut=document.getElementById('sec-nut');
+  if(s==='rutina'){
+    sem.style.display='none';tips.style.display='none';nut.style.display='none';
+    if(!silent){
+      tabs.style.display='flex';
+      document.querySelectorAll('.content').forEach(c=>{c.style.display=c.classList.contains('active')?'block':'none'});
+    }
+    document.getElementById('nav-rutina').classList.add('active');
+  }else if(s==='semana'){
+    tabs.style.display='none';
+    document.querySelectorAll('.content').forEach(c=>c.style.display='none');
+    sem.style.display='block';tips.style.display='none';nut.style.display='none';
+    document.getElementById('nav-semana').classList.add('active');
+  }else if(s==='nut'){
+    tabs.style.display='none';
+    document.querySelectorAll('.content').forEach(c=>c.style.display='none');
+    sem.style.display='none';tips.style.display='none';nut.style.display='block';
+    document.getElementById('nav-nut').classList.add('active');
+  }else if(s==='tips'){
+    tabs.style.display='none';
+    document.querySelectorAll('.content').forEach(c=>c.style.display='none');
+    sem.style.display='none';tips.style.display='block';nut.style.display='none';
+    document.getElementById('nav-tips').classList.add('active');
+  }
+}
+document.querySelectorAll('.content').forEach(c=>{if(!c.classList.contains('active'))c.style.display='none';});
+</script>
+</body>
+</html>
