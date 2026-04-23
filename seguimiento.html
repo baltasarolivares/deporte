@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Seguimiento</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root {
+  --bg:     #0f0f0f;
+  --card:   #1a1a1a;
+  --card2:  #222;
+  --accent: #f97316;
+  --text:   #f5f5f5;
+  --muted:  #888;
+  --border: #2a2a2a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Login ─────────────────────────────────────────────────────────────── */
+#login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+.login-card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid var(--border);
+}
+.login-logo {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.login-card h2 {
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.login-card p {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.field {
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+.field input:focus {
+  border-color: var(--accent);
+}
+.login-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity .2s;
+}
+.login-btn:disabled { opacity: .5; cursor: default; }
+.login-error {
+  font-size: 13px;
+  color: #f87171;
+  text-align: center;
+  margin-top: 12px;
+  min-height: 18px;
+}
+
+/* ── App shell ──────────────────────────────────────────────────────────── */
+#app-shell { display: none; padding-bottom: 80px; }
+
+.header {
+  background: linear-gradient(135deg, #1a1a1a, var(--bg));
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.header h1 {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.header p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+.logout-btn {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.logout-btn:hover { color: var(--text); }
+
+/* ── Sections ───────────────────────────────────────────────────────────── */
+.sec { display: none; padding: 16px 14px; }
+.sec.active { display: block; }
+
+.sec-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── Check-in ───────────────────────────────────────────────────────────── */
+.checkin-date {
+  background: var(--card);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.checkin-date .dlabel {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+.checkin-date .dtitle {
+  font-size: 22px;
+  font-weight: 900;
+}
+.checkin-date .dsub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.progress-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .4s ease;
+  width: 0%;
+}
+
+.habit-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.habit-card.done {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+.habit-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.habit-info { flex: 1; }
+.habit-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+.habit-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.habit-toggle {
+  width: 46px;
+  height: 26px;
+  background: var(--card2);
+  border-radius: 13px;
+  border: 1.5px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+  transition: background .2s, border-color .2s;
+}
+.habit-toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: var(--muted);
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: left .2s, background .2s;
+}
+.habit-card.done .habit-toggle {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.habit-card.done .habit-toggle::after {
+  left: 22px;
+  background: #fff;
+}
+
+/* ── Selector de rutina (Trini) ─────────────────────────────────────────── */
+.routine-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.routine-btn {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.routine-btn.full-width { grid-column: 1 / -1; }
+.routine-btn.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+}
+.routine-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.routine-name {
+  font-size: 14px;
+  font-weight: 800;
+}
+.routine-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.routine-btn.active .routine-badge,
+.routine-btn.active .routine-name { color: var(--accent); }
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 999;
+  transition: top .25s ease;
+  white-space: nowrap;
+}
+#toast.show { top: 14px; }
+
+/* ── Historial ──────────────────────────────────────────────────────────── */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cal-title {
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+.cal-arrow {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal-wrap {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.cal-headers {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+.cal-headers span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--card2);
+  border: 1.5px solid transparent;
+}
+.cal-day.empty   { background: transparent; }
+.cal-day.future  { opacity: .25; }
+.cal-day.today   { border-color: var(--accent); color: var(--text); }
+.cal-day.day-1   { background: color-mix(in srgb, var(--accent) 20%, var(--card2)); color: var(--text); }
+.cal-day.day-2   { background: color-mix(in srgb, var(--accent) 42%, var(--card2)); color: var(--text); }
+.cal-day.day-3   { background: color-mix(in srgb, var(--accent) 68%, var(--card2)); color: #fff; }
+.cal-day.day-4   { background: var(--accent); color: #fff; font-weight: 800; }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 13px 8px;
+  text-align: center;
+}
+.stat-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.stat-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+.cal-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 2px 0 6px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* ── Compartido placeholder ──────────────────────────────────────────────── */
+.placeholder-block {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px dashed var(--border);
+}
+.placeholder-block .p-emoji { font-size: 40px; margin-bottom: 10px; }
+.placeholder-block h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.placeholder-block p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── Compartido ──────────────────────────────────────────────────────────── */
+.cmp-card {
+  background: var(--card);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.cmp-card-header {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.cmp-card-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.cmp-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.cmp-user-name {
+  font-size: 16px;
+  font-weight: 900;
+  text-align: center;
+}
+.cmp-habit-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+}
+.cmp-habit-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.cmp-status {
+  width: 44px;
+  text-align: center;
+  font-size: 19px;
+}
+.cmp-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 12px 14px 14px;
+  gap: 4px;
+}
+.cmp-score {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+}
+.cmp-score-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+  text-align: center;
+}
+.cmp-month-card {
+  background: var(--card);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cmp-month-header {
+  padding: 12px 14px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.cmp-stat-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+}
+.cmp-stat-row:last-child { border-bottom: none; }
+.cmp-stat-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cmp-stat-val {
+  width: 64px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+}
+.cmp-loading {
+  padding: 30px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ── Bottom nav ─────────────────────────────────────────────────────────── */
+.bnav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(15,15,15,.96);
+  border-top: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-around;
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+.nb {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.ni { font-size: 20px; display: block; margin-bottom: 2px; }
+.nb.active { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🏋️</div>
+    <h2>Seguimiento</h2>
+    <p>Inicia sesión para registrar tus metas diarias</p>
+    <form id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input id="login-password" type="password" placeholder="••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="login-btn" id="login-btn">Entrar</button>
+      <div class="login-error" id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ══════════════════════════════════════════════════════════ -->
+<div id="app-shell">
+
+  <div class="header">
+    <div>
+      <h1 id="header-title">Seguimiento</h1>
+      <p id="header-sub">Cargando...</p>
+    </div>
+    <button class="logout-btn" onclick="handleSignOut()">Salir</button>
+  </div>
+
+  <!-- HOY -->
+  <div class="sec active" id="sec-hoy">
+    <div class="checkin-date">
+      <div class="dlabel" id="hoy-label">Hoy</div>
+      <div class="dtitle" id="hoy-titulo">—</div>
+      <div class="dsub" id="hoy-sub">Registra tus metas del día</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div id="habit-list"></div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="sec" id="sec-historial">
+    <div class="cal-nav">
+      <button class="cal-arrow" onclick="changeMonth(-1)">‹</button>
+      <span class="cal-title" id="cal-title">—</span>
+      <button class="cal-arrow" onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="cal-wrap">
+      <div class="cal-headers">
+        <span>Lu</span><span>Ma</span><span>Mi</span>
+        <span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-days">—</div>
+        <div class="stat-lbl">Días registrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-streak">—</div>
+        <div class="stat-lbl">Racha actual</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-avg">—</div>
+        <div class="stat-lbl">Promedio diario</div>
+      </div>
+    </div>
+
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot cal-day day-0" style="width:12px;height:12px;aspect-ratio:unset"></div><span>Sin datos</span></div>
+      <div class="legend-item"><div class="legend-dot cal-day day-2" style="width:12px;height:12px;aspect-ratio:unset"></div><span>Parcial</span></div>
+      <div class="legend-item"><div class="legend-dot cal-day day-4" style="width:12px;height:12px;aspect-ratio:unset"></div><span>Completo</span></div>
+    </div>
+  </div>
+
+  <!-- COMPARTIDO -->
+  <div class="sec" id="sec-compartido">
+    <div class="cmp-card" id="cmp-today">
+      <div class="cmp-loading">Cargando...</div>
+    </div>
+    <div class="sec-title">Este mes</div>
+    <div id="cmp-month"></div>
+  </div>
+
+  <div class="bnav">
+    <button class="nb active" id="btn-hoy" onclick="showSec('hoy', this)">
+      <span class="ni">✅</span>Hoy
+    </button>
+    <button class="nb" id="btn-historial" onclick="showSec('historial', this)">
+      <span class="ni">📅</span>Historial
+    </button>
+    <button class="nb" id="btn-compartido" onclick="showSec('compartido', this)">
+      <span class="ni">👥</span>Juntos
+    </button>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Constantes ───────────────────────────────────────────────────────────────
+const THEMES = {
+  orange: { accent: '#f97316', bg: '#0f0f0f' },
+  purple: { accent: '#c084fc', bg: '#0a0a0f' }
+}
+
+// Claves para estadísticas (3 hábitos principales, iguales para ambos)
+const HABIT_KEYS = ['workout_done', 'nutrition_ok', 'sleep_ok']
+
+// Estado local del día
+let todayLog = { workout_done: false, nutrition_ok: false, cardio_done: false, sleep_ok: false, routine_id: null }
+
+// ── Plan Baltasar (por día de semana: 0=Dom … 6=Sáb) ─────────────────────────
+const DAY_PLAN = {
+  0: { icon:'🚴', title:'BICI',      sub:'Recuperación activa · Zona 1–2 · 45–60 min',   nut:'~2000 kcal · Recuperación activa',          autoDone:false, cardio:null },
+  1: { icon:'😴', title:'Descanso',  sub:'Recuperación completa · día libre',              nut:'~2000 kcal · Déficit suave',                 autoDone:true,  cardio:null },
+  2: { icon:'💪', title:'PUSH',      sub:'Pecho · Hombros · Tríceps · 🏠 Casa',           nut:'~2400 kcal · Carbos altos post-entreno',     autoDone:false, cardio:null },
+  3: { icon:'🔵', title:'PULL',      sub:'Espalda horizontal · Bíceps · Core · 🏠 Casa',  nut:'~2400 kcal · Carbos altos post-entreno',     autoDone:false, cardio:null },
+  4: { icon:'🏋️', title:'ESPALDA',  sub:'Polea alta · Cables · 🏋️ Gym',                 nut:'~2400 kcal · Carbos altos post-entreno',     autoDone:false,
+       cardio:{ icon:'🚴', title:'Cardio PM', sub:'Zona 2 · Bici o caminata intensa' } },
+  5: { icon:'🦵', title:'PIERNAS',   sub:'Cuádriceps · Isquios · Glúteos · 🏠 Casa',     nut:'~2400 kcal · Carbos altos post-entreno',     autoDone:false, cardio:null },
+  6: { icon:'🍕', title:'CHEAT DAY', sub:'¿Respetaste las reglas del cheat?',              nut:'Cheat controlado · Vuelve al plan mañana',   autoDone:false, cardio:null }
+}
+
+// ── Rutinas Trini ─────────────────────────────────────────────────────────────
+const TRINI_ROUTINES = [
+  { id:'A',    title:'A · Glúteos + Isquios', sub:'Hip hinge · Activación glútea', badge:'⭐ P1'     },
+  { id:'B',    title:'B · Tren Superior',     sub:'Espalda · Hombros · Core',      badge:'⭐⭐ P2'   },
+  { id:'C',    title:'C · Cuádriceps',        sub:'Squat dominant · VMO',          badge:'⭐⭐⭐ P3' },
+  { id:'D',    title:'D · Full Body',         sub:'Supersets · 30–35 min',         badge:'Opcional'  },
+  { id:'rest', title:'Descanso',              sub:'Sin entreno hoy',               badge:''           }
+]
+
+// ── Tema ─────────────────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  const t = THEMES[theme] || THEMES.orange
+  const r = document.documentElement
+  r.style.setProperty('--accent', t.accent)
+  r.style.setProperty('--bg', t.bg)
+  document.body.style.background = t.bg
+}
+
+// ── Fechas ───────────────────────────────────────────────────────────────────
+function todayFormatted() {
+  return new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+}
+function todayShort() {
+  const d = new Date()
+  const dia  = d.toLocaleDateString('es-CL', { weekday: 'long' }).replace(/^\w/, c => c.toUpperCase())
+  const num  = d.getDate()
+  return `${dia} ${num}`
+}
+
+// ── Check-in ─────────────────────────────────────────────────────────────────
+function isTrini() { return window.currentProfile && window.currentProfile.theme === 'purple' }
+
+function renderHoySection(profile) {
+  const list = document.getElementById('habit-list')
+  if (profile.theme !== 'purple') {
+    const plan = DAY_PLAN[new Date().getDay()]
+    list.innerHTML = `
+      <div class="habit-card${plan.autoDone ? ' done' : ''}" data-habit="workout_done"
+           ${plan.autoDone ? '' : "onclick=\"toggleHabit('workout_done')\""}
+           style="${plan.autoDone ? 'cursor:default' : ''}">
+        <div class="habit-icon">${plan.icon}</div>
+        <div class="habit-info">
+          <div class="habit-name">${plan.title}</div>
+          <div class="habit-sub">${plan.sub}</div>
+        </div>
+        ${plan.autoDone
+          ? '<div style="font-size:11px;color:var(--muted);flex-shrink:0">Plan ✓</div>'
+          : '<div class="habit-toggle"></div>'}
+      </div>
+      <div class="habit-card" data-habit="nutrition_ok" onclick="toggleHabit('nutrition_ok')">
+        <div class="habit-icon">🥗</div>
+        <div class="habit-info">
+          <div class="habit-name">Nutrición</div>
+          <div class="habit-sub">${plan.nut}</div>
+        </div>
+        <div class="habit-toggle"></div>
+      </div>
+      ${plan.cardio ? `
+      <div class="habit-card" data-habit="cardio_done" onclick="toggleHabit('cardio_done')">
+        <div class="habit-icon">${plan.cardio.icon}</div>
+        <div class="habit-info">
+          <div class="habit-name">${plan.cardio.title}</div>
+          <div class="habit-sub">${plan.cardio.sub}</div>
+        </div>
+        <div class="habit-toggle"></div>
+      </div>` : ''}
+      <div class="habit-card" data-habit="sleep_ok" onclick="toggleHabit('sleep_ok')">
+        <div class="habit-icon">😴</div>
+        <div class="habit-info">
+          <div class="habit-name">Descanso</div>
+          <div class="habit-sub">¿Dormiste bien?</div>
+        </div>
+        <div class="habit-toggle"></div>
+      </div>`
+  } else {
+    list.innerHTML = `
+      <div class="sec-title" style="margin:0 0 10px">¿Qué entrenaste hoy?</div>
+      <div class="routine-selector">
+        ${TRINI_ROUTINES.map(r => `
+          <div class="routine-btn${r.id === 'rest' ? ' full-width' : ''}"
+               data-routine="${r.id}" onclick="selectRoutine('${r.id}')">
+            ${r.badge ? `<div class="routine-badge">${r.badge}</div>` : ''}
+            <div class="routine-name">${r.title}</div>
+            <div class="routine-sub">${r.sub}</div>
+          </div>`).join('')}
+      </div>
+      <div class="habit-card" data-habit="nutrition_ok" onclick="toggleHabit('nutrition_ok')">
+        <div class="habit-icon">🥗</div>
+        <div class="habit-info">
+          <div class="habit-name">Nutrición</div>
+          <div class="habit-sub" id="nut-sub">¿Cumpliste tu meta calórica?</div>
+        </div>
+        <div class="habit-toggle"></div>
+      </div>
+      <div class="habit-card" data-habit="sleep_ok" onclick="toggleHabit('sleep_ok')">
+        <div class="habit-icon">😴</div>
+        <div class="habit-info">
+          <div class="habit-name">Descanso</div>
+          <div class="habit-sub">¿Dormiste bien?</div>
+        </div>
+        <div class="habit-toggle"></div>
+      </div>`
+  }
+}
+
+function updateNutSubtitle() {
+  const el = document.getElementById('nut-sub')
+  if (el) el.textContent = todayLog.workout_done ? '~1700 kcal · Día de entreno' : '~1500 kcal · Día de descanso'
+}
+
+async function loadTodayCheckin() {
+  const log = await getLog(window.currentUser.uid, todayISO())
+  todayLog = { workout_done:false, nutrition_ok:false, cardio_done:false, sleep_ok:false, routine_id:null }
+  if (log) {
+    ;['workout_done','nutrition_ok','cardio_done','sleep_ok'].forEach(k => { todayLog[k] = !!log[k] })
+    todayLog.routine_id   = log.routine_id || null
+    if (isTrini()) todayLog.workout_done = !!todayLog.routine_id && todayLog.routine_id !== 'rest'
+  }
+  if (!isTrini() && DAY_PLAN[new Date().getDay()].autoDone) todayLog.workout_done = true
+  if (isTrini()) updateNutSubtitle()
+  renderCheckin()
+}
+
+function renderCheckin() {
+  let done, total
+  if (isTrini()) {
+    done  = (todayLog.workout_done?1:0) + (todayLog.nutrition_ok?1:0) + (todayLog.sleep_ok?1:0)
+    total = 3
+    renderRoutineSelector()
+  } else {
+    const keys = DAY_PLAN[new Date().getDay()].cardio
+      ? ['workout_done','nutrition_ok','cardio_done','sleep_ok']
+      : HABIT_KEYS
+    done  = keys.filter(k => todayLog[k]).length
+    total = keys.length
+  }
+  const sub = done === total ? '¡Todo cumplido hoy! 🎉' : `${done} de ${total} hábitos completados`
+  document.getElementById('hoy-sub').textContent       = sub
+  document.getElementById('progress-fill').style.width = `${(done/total)*100}%`
+  ;['workout_done','nutrition_ok','cardio_done','sleep_ok'].forEach(k => {
+    const c = document.querySelector(`[data-habit="${k}"]`)
+    if (c) c.classList.toggle('done', !!todayLog[k])
+  })
+}
+
+function renderRoutineSelector() {
+  document.querySelectorAll('.routine-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.routine === todayLog.routine_id)
+  })
+}
+
+async function selectRoutine(id) {
+  const prev          = todayLog.routine_id
+  todayLog.routine_id   = (prev === id) ? null : id
+  todayLog.workout_done = !!todayLog.routine_id && todayLog.routine_id !== 'rest'
+  updateNutSubtitle()
+  renderCheckin()
+  try {
+    await upsertLog(window.currentUser.uid, todayISO(), { ...todayLog })
+    showToast('✓ Guardado')
+  } catch {
+    todayLog.routine_id   = prev
+    todayLog.workout_done = !!prev && prev !== 'rest'
+    updateNutSubtitle()
+    renderCheckin()
+    showToast('Error al guardar')
+  }
+}
+
+async function toggleHabit(key) {
+  todayLog[key] = !todayLog[key]
+  renderCheckin()
+  try {
+    await upsertLog(window.currentUser.uid, todayISO(), { ...todayLog })
+    showToast('✓ Guardado')
+  } catch {
+    todayLog[key] = !todayLog[key]
+    renderCheckin()
+    showToast('Error al guardar')
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimer = null
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800)
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuthChange(async (user) => {
+  if (user) {
+    const profile = await getProfile(user.uid)
+    if (!profile) return
+
+    window.currentUser    = user
+    window.currentProfile = profile
+
+    applyTheme(profile.theme)
+    document.getElementById('header-title').textContent = `Seguimiento · ${profile.name}`
+    document.getElementById('header-sub').textContent   = todayFormatted()
+    document.getElementById('hoy-label').textContent    = 'Hoy'
+    document.getElementById('hoy-titulo').textContent   = todayShort()
+
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('app-shell').style.display    = 'block'
+
+    renderHoySection(profile)
+    await loadTodayCheckin()
+  } else {
+    window.currentUser    = null
+    window.currentProfile = null
+    document.getElementById('login-screen').style.display = 'flex'
+    document.getElementById('app-shell').style.display    = 'none'
+  }
+})
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const email    = document.getElementById('login-email').value
+  const password = document.getElementById('login-password').value
+  const btn      = document.getElementById('login-btn')
+  const err      = document.getElementById('login-error')
+
+  btn.textContent = 'Entrando...'
+  btn.disabled    = true
+  err.textContent = ''
+
+  try {
+    await signIn(email, password)
+  } catch {
+    err.textContent = 'Email o contraseña incorrectos'
+    btn.textContent = 'Entrar'
+    btn.disabled    = false
+  }
+})
+
+async function handleSignOut() {
+  await signOut()
+}
+
+// ── Historial ─────────────────────────────────────────────────────────────────
+let histYear  = new Date().getFullYear()
+let histMonth = new Date().getMonth() + 1
+
+async function loadHistorial() {
+  const logs = await getMonthLogs(window.currentUser.uid, histYear, histMonth)
+  const logMap = {}
+  logs.forEach(l => {
+    logMap[l.log_date] = HABIT_KEYS.filter(k => l[k]).length
+  })
+  renderCalendar(histYear, histMonth, logMap)
+}
+
+function renderCalendar(year, month, logMap) {
+  const title = new Date(year, month - 1, 1)
+    .toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+    .replace(/^\w/, c => c.toUpperCase())
+  document.getElementById('cal-title').textContent = title
+
+  const grid    = document.getElementById('cal-grid')
+  const today   = todayISO()
+  const offset  = (new Date(year, month - 1, 1).getDay() + 6) % 7
+  const numDays = new Date(year, month, 0).getDate()
+
+  grid.innerHTML = ''
+
+  for (let i = 0; i < offset; i++) {
+    const el = document.createElement('div')
+    el.className = 'cal-day empty'
+    grid.appendChild(el)
+  }
+
+  for (let d = 1; d <= numDays; d++) {
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    const count   = logMap[dateStr]
+    const el      = document.createElement('div')
+
+    let cls = 'cal-day'
+    if (dateStr > today)       cls += ' future'
+    else if (dateStr === today) cls += ' today'
+    if (count !== undefined)   cls += ` day-${count}`
+
+    el.className   = cls
+    el.textContent = d
+    grid.appendChild(el)
+  }
+
+  renderStats(logMap, today)
+}
+
+function renderStats(logMap, today) {
+  const past = Object.entries(logMap).filter(([d]) => d <= today)
+
+  const daysReg = past.filter(([, c]) => c > 0).length
+  const active  = past.filter(([, c]) => c > 0)
+  const avg     = active.length
+    ? Math.round(active.reduce((s, [, c]) => s + c, 0) / active.length / HABIT_KEYS.length * 100)
+    : 0
+
+  let streak = 0
+  const cur = new Date()
+  while (true) {
+    const ds = cur.toISOString().split('T')[0]
+    if (logMap[ds] === undefined || logMap[ds] === 0) break
+    streak++
+    cur.setDate(cur.getDate() - 1)
+  }
+
+  document.getElementById('stat-days').textContent   = daysReg
+  document.getElementById('stat-streak').textContent = streak > 0 ? `${streak} 🔥` : '0'
+  document.getElementById('stat-avg').textContent    = `${avg}%`
+}
+
+function changeMonth(dir) {
+  histMonth += dir
+  if (histMonth > 12) { histMonth = 1; histYear++ }
+  if (histMonth < 1)  { histMonth = 12; histYear-- }
+  loadHistorial()
+}
+
+// ── Compartido ────────────────────────────────────────────────────────────────
+const HABITS_DISPLAY = [
+  { key: 'workout_done', icon: '🏋️', name: 'Entreno'   },
+  { key: 'nutrition_ok', icon: '🥗', name: 'Nutrición' },
+  { key: 'cardio_done',  icon: '🚴', name: 'Cardio'    },
+  { key: 'sleep_ok',     icon: '😴', name: 'Descanso'  }
+]
+const COLOR = { orange: '#f97316', purple: '#c084fc' }
+
+async function loadCompartido() {
+  document.getElementById('cmp-today').innerHTML = '<div class="cmp-loading">Cargando...</div>'
+  document.getElementById('cmp-month').innerHTML = ''
+
+  const profiles = await getAllProfiles()
+  profiles.sort((a, b) => a.name.localeCompare(b.name))
+
+  const now   = new Date()
+  const year  = now.getFullYear()
+  const month = now.getMonth() + 1
+
+  const [todayLogs, monthLogs] = await Promise.all([
+    Promise.all(profiles.map(p => getLog(p.id, todayISO()))),
+    Promise.all(profiles.map(p => getMonthLogs(p.id, year, month)))
+  ])
+
+  renderCompartido(profiles, todayLogs, monthLogs, year, month)
+}
+
+function renderCompartido(profiles, todayLogs, monthLogs, year, month) {
+  const [p1, p2]   = profiles
+  const [l1, l2]   = todayLogs.map(l => l || {})
+  const [ml1, ml2] = monthLogs
+  const c1 = COLOR[p1.theme] || COLOR.orange
+  const c2 = COLOR[p2.theme] || COLOR.purple
+  const cnt1 = HABIT_KEYS.filter(k => l1[k]).length
+  const cnt2 = HABIT_KEYS.filter(k => l2[k]).length
+
+  // ── Tarjeta de hoy
+  document.getElementById('cmp-today').innerHTML = `
+    <div class="cmp-card-header">
+      <div class="cmp-card-title">Hoy · ${todayISO()}</div>
+      <div class="cmp-users">
+        <div class="cmp-user-name" style="color:${c1}">${p1.name}</div>
+        <div class="cmp-user-name" style="color:${c2}">${p2.name}</div>
+      </div>
+    </div>
+    ${HABITS_DISPLAY.map(h => `
+      <div class="cmp-habit-row">
+        <div class="cmp-habit-label">${h.icon} ${h.name}</div>
+        <div class="cmp-status">${l1[h.key] ? '✅' : '⬜'}</div>
+        <div class="cmp-status">${l2[h.key] ? '✅' : '⬜'}</div>
+      </div>`).join('')}
+    <div class="cmp-scores">
+      <div>
+        <div class="cmp-score" style="color:${c1}">${cnt1}/4</div>
+        <div class="cmp-score-sub">${Math.round(cnt1 / 4 * 100)}% hoy</div>
+      </div>
+      <div>
+        <div class="cmp-score" style="color:${c2}">${cnt2}/4</div>
+        <div class="cmp-score-sub">${Math.round(cnt2 / 4 * 100)}% hoy</div>
+      </div>
+    </div>`
+
+  // ── Stats del mes
+  function calcStats(logs) {
+    const today   = todayISO()
+    const past    = logs.filter(l => l.log_date <= today)
+    const active  = past.filter(l => HABIT_KEYS.some(k => l[k]))
+    const avg     = active.length
+      ? Math.round(active.reduce((s, l) => s + HABIT_KEYS.filter(k => l[k]).length, 0)
+          / active.length / HABIT_KEYS.length * 100)
+      : 0
+    const map = {}
+    logs.forEach(l => { map[l.log_date] = HABIT_KEYS.filter(k => l[k]).length })
+    let streak = 0
+    const cur = new Date()
+    while (true) {
+      const ds = cur.toISOString().split('T')[0]
+      if (!map[ds] || map[ds] === 0) break
+      streak++
+      cur.setDate(cur.getDate() - 1)
+    }
+    return { days: active.length, streak, avg }
+  }
+
+  const s1 = calcStats(ml1)
+  const s2 = calcStats(ml2)
+  const monthLabel = new Date(year, month - 1, 1)
+    .toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+    .replace(/^\w/, c => c.toUpperCase())
+
+  document.getElementById('cmp-month').innerHTML = `
+    <div class="cmp-month-card">
+      <div class="cmp-month-header">${monthLabel}</div>
+      <div class="cmp-stat-row">
+        <div class="cmp-stat-label"></div>
+        <div class="cmp-stat-val" style="color:${c1}">${p1.name}</div>
+        <div class="cmp-stat-val" style="color:${c2}">${p2.name}</div>
+      </div>
+      <div class="cmp-stat-row">
+        <div class="cmp-stat-label">Días activos</div>
+        <div class="cmp-stat-val" style="color:${c1}">${s1.days}</div>
+        <div class="cmp-stat-val" style="color:${c2}">${s2.days}</div>
+      </div>
+      <div class="cmp-stat-row">
+        <div class="cmp-stat-label">Racha</div>
+        <div class="cmp-stat-val" style="color:${c1}">${s1.streak > 0 ? s1.streak + ' 🔥' : '0'}</div>
+        <div class="cmp-stat-val" style="color:${c2}">${s2.streak > 0 ? s2.streak + ' 🔥' : '0'}</div>
+      </div>
+      <div class="cmp-stat-row">
+        <div class="cmp-stat-label">Promedio</div>
+        <div class="cmp-stat-val" style="color:${c1}">${s1.avg}%</div>
+        <div class="cmp-stat-val" style="color:${c2}">${s2.avg}%</div>
+      </div>
+    </div>`
+}
+
+// ── Navegación ────────────────────────────────────────────────────────────────
+function showSec(name, btn) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'))
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'))
+  document.getElementById('sec-' + name).classList.add('active')
+  btn.classList.add('active')
+  if (name === 'historial'  && window.currentUser) loadHistorial()
+  if (name === 'compartido' && window.currentUser) loadCompartido()
+}
+</script>
+</body>
+</html>
