@@ -39,8 +39,12 @@ export default {
       return json({ error: 'Invalid JSON' }, 400)
     }
 
-    const { image, mimeType = 'image/jpeg' } = payload
+    const { image, mimeType = 'image/jpeg', notes = '' } = payload
     if (!image) return json({ error: 'image required' }, 400)
+
+    const fullPrompt = notes && notes.trim()
+      ? `${PROMPT}\n\nNotas del usuario para ajustar la estimación: "${notes.trim()}"`
+      : PROMPT
 
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -53,7 +57,7 @@ export default {
         messages: [{
           role: 'user',
           content: [
-            { type: 'text', text: PROMPT },
+            { type: 'text', text: fullPrompt },
             { type: 'image_url',
               image_url: { url: `data:${mimeType};base64,${image}`, detail: 'low' } }
           ]

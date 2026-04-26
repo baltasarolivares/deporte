@@ -90,9 +90,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pnote{background:linear-gradient(135deg,#0d1a0d,#111f11);border:1px solid #1a3a1a;border-radius:12px;padding:13px;margin-bottom:9px}
 .pnote h3{font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px}
 .pnote p{font-size:13px;color:#5a8a5a;line-height:1.5}
+.back-bar{position:sticky;top:0;background:var(--bg);padding:10px 16px;z-index:101;border-bottom:1px solid var(--border)}
+.back-bar a{color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.back-bar a:active{color:var(--accent)}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  document.documentElement.style.visibility = 'hidden'
+  onAuthChange(user => {
+    if (!user) location.replace('index.html')
+    else document.documentElement.style.visibility = 'visible'
+  })
+</script>
 </head>
 <body>
+
+<div class="back-bar"><a href="index.html">← Inicio</a></div>
 
 <div class="header">
   <h1>⚡ Rutina Baltasar</h1>

@@ -26,7 +26,9 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  visibility: hidden;
 }
+body.ready { visibility: visible; }
 
 /* ── Login ──────────────────────────────────────────────────────────────── */
 #login-screen {
@@ -214,7 +216,31 @@ body {
   font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .ov-kcal-val { font-size: 38px; font-weight: 900; color: var(--accent); line-height: 1; }
-.ov-kcal-unit { font-size: 14px; color: var(--muted); }
+.ov-kcal-unit { font-size: 14px; color: var(--muted); text-align: center; margin-top: 4px; }
+.ov-kcal-input {
+  width: 110px; background: transparent; border: none; outline: none;
+  font-size: 38px; font-weight: 900; color: var(--accent);
+  font-family: inherit; text-align: center; line-height: 1;
+  padding: 4px 0; border-bottom: 1.5px solid var(--border);
+  -moz-appearance: textfield; appearance: textfield;
+}
+.ov-kcal-input:focus { border-bottom-color: var(--accent); }
+.ov-kcal-input::-webkit-outer-spin-button,
+.ov-kcal-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.ov-photo {
+  width: 100%; max-height: 220px; object-fit: cover;
+  border-radius: 12px; margin-bottom: 14px;
+  background: var(--card2);
+}
+.ov-notes {
+  width: 100%; background: var(--card2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 11px 12px; font-size: 14px;
+  color: var(--text); font-family: inherit; resize: none;
+  outline: none; transition: border-color .2s; margin-bottom: 14px;
+}
+.ov-notes:focus { border-color: var(--accent); }
+.ov-notes::placeholder { color: var(--muted); }
 .ov-macros {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 6px; margin-bottom: 14px;
@@ -372,7 +398,7 @@ body {
       <p id="header-sub">Cargando...</p>
     </div>
     <div class="header-right">
-      <button class="back-btn" onclick="window.location='seguimiento.html'">← Seguimiento</button>
+      <button class="back-btn" onclick="window.location='index.html'">← Inicio</button>
       <button class="logout-btn" onclick="handleSignOut()">Salir</button>
     </div>
   </div>
@@ -656,28 +682,52 @@ function resizeImage(file, maxSize = 900) {
   })
 }
 
+let pendingPhoto = null
+
 document.getElementById('food-input').addEventListener('change', async (e) => {
   const file = e.target.files[0]
   if (!file) return
   e.target.value = ''  // reset para poder volver a subir la misma foto
 
+  const base64 = await resizeImage(file)
+  pendingPhoto = {
+    base64,
+    mimeType: file.type,
+    dataUrl:  `data:${file.type};base64,${base64}`
+  }
+  showOverlay('pre-analyze')
+})
+
+async function startAnalysis() {
+  if (!pendingPhoto) return
+  const notes = document.getElementById('ov-notes').value.trim()
   showOverlay('loading')
   try {
-    const base64 = await resizeImage(file)
-    const result = await analyzeFoodPhoto(base64, file.type)
+    const result = await analyzeFoodPhoto(pendingPhoto.base64, pendingPhoto.mimeType, notes)
     pendingEntry = result
     showOverlay('confirm', result)
   } catch (err) {
     showOverlay('error', null, err.message)
   }
-})
+}
 
 // ── Overlay ──────────────────────────────────────────────────────────────────
 function showOverlay(state, data, errMsg) {
   const card = document.getElementById('overlay-card')
   const ov   = document.getElementById('overlay')
 
-  if (state === 'loading') {
+  if (state === 'pre-analyze') {
+    card.innerHTML = `
+      <div class="ov-title">📷 Lista para analizar</div>
+      <img src="${pendingPhoto.dataUrl}" class="ov-photo" alt="comida">
+      <textarea class="ov-notes" id="ov-notes" rows="2"
+        placeholder="Notas opcionales: porción pequeña, light, sin azúcar, doble queso, etc."
+        maxlength="200"></textarea>
+      <div class="ov-actions">
+        <button class="btn-cancel" onclick="closeOverlay()">Cancelar</button>
+        <button class="btn-confirm" onclick="startAnalysis()">🔍 Analizar</button>
+      </div>`
+  } else if (state === 'loading') {
     card.innerHTML = `
       <div class="ov-loading">
         <div class="spinner"></div>
@@ -690,12 +740,13 @@ function showOverlay(state, data, errMsg) {
       <div class="ov-title">${isEdit ? '✏️ Editar comida' : '¿Qué comiste?'}</div>
       <input class="ov-name" id="ov-name" value="${d.name}" maxlength="60">
       <div class="ov-kcal-row">
-        <button class="ov-adj" onclick="adjustCal(-50)">−</button>
+        <button class="ov-adj" onclick="adjustCal(-5)">−5</button>
         <div>
-          <div class="ov-kcal-val" id="ov-kcal">${d.calories}</div>
-          <div class="ov-kcal-unit" style="text-align:center">kcal</div>
+          <input class="ov-kcal-input" id="ov-kcal" type="number" inputmode="numeric"
+                 min="0" step="1" value="${d.calories}">
+          <div class="ov-kcal-unit">kcal</div>
         </div>
-        <button class="ov-adj" onclick="adjustCal(50)">+</button>
+        <button class="ov-adj" onclick="adjustCal(5)">+5</button>
       </div>
       <div class="ov-macros">
         <div class="ov-macro">
@@ -740,8 +791,8 @@ function retryPhoto() {
 
 function adjustCal(delta) {
   const el  = document.getElementById('ov-kcal')
-  const val = Math.max(0, (parseInt(el.textContent) || 0) + delta)
-  el.textContent = val
+  const val = Math.max(0, (parseInt(el.value) || 0) + delta)
+  el.value = val
   if (pendingEntry) pendingEntry.calories = val
 }
 
@@ -749,7 +800,7 @@ async function confirmEntry() {
   if (!pendingEntry) return
   const uid    = window.currentUser.uid
   const name   = document.getElementById('ov-name').value.trim() || pendingEntry.name
-  const kcal   = parseInt(document.getElementById('ov-kcal').textContent) || pendingEntry.calories
+  const kcal   = parseInt(document.getElementById('ov-kcal').value) || pendingEntry.calories
   const editId = pendingEntry._editId
   const data = {
     name,
@@ -806,12 +857,12 @@ onAuthChange(async (user) => {
 
     document.getElementById('login-screen').style.display = 'none'
     document.getElementById('app-shell').style.display    = 'block'
+    document.body.classList.add('ready')
     await loadTodayEntries()
   } else {
     window.currentUser    = null
     window.currentProfile = null
-    document.getElementById('login-screen').style.display = 'flex'
-    document.getElementById('app-shell').style.display    = 'none'
+    location.replace('index.html')
   }
 })
 
@@ -845,11 +896,14 @@ function showSec(name, btn) {
 // ── Juntos (compartido) ──────────────────────────────────────────────────────
 async function loadJuntos() {
   if (!window.currentUser) return
-  const today = todayISO()
+  const today    = todayISO()
+  const myCircle = window.currentProfile.circle || 'casa'
   try {
-    const profiles = await getAllProfiles()
+    const profiles = (await getAllProfiles())
+      .filter(p => (p.circle || 'casa') === myCircle)
     const cards = await Promise.all(
-      Object.entries(profiles).map(async ([uid, profile]) => {
+      profiles.map(async (profile) => {
+        const uid = profile.id
         const [entries, segLog] = await Promise.all([
           getDayFoodLogs(uid, today),
           getLog(uid, today).catch(() => null)

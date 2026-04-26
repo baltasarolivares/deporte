@@ -24,7 +24,9 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  visibility: hidden;
 }
+body.ready { visibility: visible; }
 
 /* ── Login ─────────────────────────────────────────────────────────────── */
 #login-screen {
@@ -614,7 +616,10 @@ body {
       <h1 id="header-title">Seguimiento</h1>
       <p id="header-sub">Cargando...</p>
     </div>
-    <button class="logout-btn" onclick="handleSignOut()">Salir</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="logout-btn" onclick="window.location='index.html'">← Inicio</button>
+      <button class="logout-btn" onclick="handleSignOut()">Salir</button>
+    </div>
   </div>
 
   <!-- HOY -->
@@ -926,14 +931,14 @@ onAuthChange(async (user) => {
 
     document.getElementById('login-screen').style.display = 'none'
     document.getElementById('app-shell').style.display    = 'block'
+    document.body.classList.add('ready')
 
     renderHoySection(profile)
     await loadTodayCheckin()
   } else {
     window.currentUser    = null
     window.currentProfile = null
-    document.getElementById('login-screen').style.display = 'flex'
-    document.getElementById('app-shell').style.display    = 'none'
+    location.replace('index.html')
   }
 })
 
@@ -1054,7 +1059,9 @@ async function loadCompartido() {
   document.getElementById('cmp-today').innerHTML = '<div class="cmp-loading">Cargando...</div>'
   document.getElementById('cmp-month').innerHTML = ''
 
-  const profiles = await getAllProfiles()
+  const myCircle = window.currentProfile.circle || 'casa'
+  const profiles = (await getAllProfiles())
+    .filter(p => (p.circle || 'casa') === myCircle)
   profiles.sort((a, b) => a.name.localeCompare(b.name))
 
   const now   = new Date()

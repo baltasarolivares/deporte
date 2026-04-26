@@ -5,11 +5,11 @@
 const WORKER_URL = 'https://deporte-calorias-proxy.hvwmxmnrr6.workers.dev'
 
 // ── Analizar imagen de comida ────────────────────────────────────────────────
-async function analyzeFoodPhoto(base64Image, mimeType = 'image/jpeg') {
+async function analyzeFoodPhoto(base64Image, mimeType = 'image/jpeg', notes = '') {
   const res = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: base64Image, mimeType })
+    body: JSON.stringify({ image: base64Image, mimeType, notes })
   })
 
   if (!res.ok) {
