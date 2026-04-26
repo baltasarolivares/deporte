@@ -1,2 +1,5 @@
 .DS_Store
 *.xlsx
+
+# Contains real API keys — never commit
+openai-config.js
