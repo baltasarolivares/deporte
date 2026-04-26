@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="openai-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --bg:     #0f0f0f;
@@ -247,14 +248,72 @@ body {
   font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 8px;
 }
 
-/* ── Historial placeholder ──────────────────────────────────────────────── */
-.placeholder-block {
-  background: var(--card); border-radius: 14px; padding: 40px 20px;
-  text-align: center; border: 1px dashed var(--border);
+/* ── Juntos (compartido) ────────────────────────────────────────────────── */
+.juntos-card {
+  background: var(--card); border-radius: 14px; padding: 16px;
+  margin-bottom: 12px; border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
 }
-.placeholder-block .p-emoji { font-size: 40px; margin-bottom: 10px; }
-.placeholder-block h3  { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
-.placeholder-block p   { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.j-header  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+.j-name    { font-size: 17px; font-weight: 800; }
+.j-day     { font-size: 11px; color: var(--muted); background: var(--card2);
+             padding: 5px 9px; border-radius: 8px; white-space: nowrap; }
+.j-kcal-row{ display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.j-total   { font-size: 32px; font-weight: 900; line-height: 1; }
+.j-goal    { font-size: 13px; color: var(--muted); }
+.j-pct     { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.j-progress{ height: 6px; background: var(--border); border-radius: 3px;
+             overflow: hidden; margin-bottom: 12px; }
+.j-progress-fill { height: 100%; transition: width .5s ease; }
+.j-macros  { display: flex; gap: 14px; font-size: 11px; color: var(--muted);
+             padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+.j-macros b { font-size: 13px; font-weight: 800; margin-right: 3px; }
+.j-last    { font-size: 12px; color: var(--text); }
+.j-last .j-last-label { color: var(--muted); margin-right: 4px; }
+.j-last.empty { color: var(--muted); font-style: italic; }
+
+/* ── Historial ──────────────────────────────────────────────────────────── */
+.period-tabs {
+  display: flex; gap: 6px; background: var(--card2); padding: 4px;
+  border-radius: 10px; margin-bottom: 14px;
+}
+.ptab {
+  flex: 1; background: none; border: none; color: var(--muted);
+  font-size: 13px; font-weight: 700; padding: 8px; border-radius: 7px;
+  cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
+}
+.ptab.active { background: var(--accent); color: #fff; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.stat-card {
+  background: var(--card); border-radius: 12px; padding: 12px 8px;
+  text-align: center; border: 1px solid var(--border);
+}
+.stat-val { font-size: 20px; font-weight: 800; color: var(--accent); }
+.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px;
+            text-transform: uppercase; letter-spacing: .4px; }
+
+.chart-card {
+  background: var(--card); border-radius: 14px; padding: 14px;
+  margin-bottom: 12px; border: 1px solid var(--border);
+}
+.chart-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--muted); margin-bottom: 10px;
+}
+.chart-wrap       { position: relative; height: 220px; }
+.chart-wrap.small { height: 180px; }
+.chart-legend {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+  font-size: 11px; color: var(--muted);
+}
+.chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend i {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+}
 
 /* ── Bottom nav ─────────────────────────────────────────────────────────── */
 .bnav {
@@ -364,18 +423,65 @@ body {
 
   </div>
 
-  <!-- HISTORIAL (M4) ------------------------------------------------------ -->
-  <div class="sec" id="sec-historial">
-    <div class="placeholder-block">
-      <div class="p-emoji">📊</div>
-      <h3>Historial semanal y mensual</h3>
-      <p>Gráficos de tendencia calórica.<br>Disponible en M4.</p>
+  <!-- JUNTOS -------------------------------------------------------------- -->
+  <div class="sec" id="sec-juntos">
+    <div class="sec-title">Hoy en tiempo real</div>
+    <div id="juntos-list">
+      <div class="food-empty">Cargando...</div>
     </div>
+  </div>
+
+  <!-- HISTORIAL ----------------------------------------------------------- -->
+  <div class="sec" id="sec-historial">
+
+    <div class="period-tabs">
+      <button class="ptab active" data-days="7"  onclick="selectPeriod(this, 7)">7 días</button>
+      <button class="ptab"        data-days="30" onclick="selectPeriod(this, 30)">30 días</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="h-avg-kcal">—</div>
+        <div class="stat-lbl">kcal promedio</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="h-days-goal">—</div>
+        <div class="stat-lbl">días en meta</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="h-avg-prot">—</div>
+        <div class="stat-lbl">proteína prom.</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Calorías por día</div>
+      <div class="chart-wrap"><canvas id="kcal-chart"></canvas></div>
+      <div class="chart-legend">
+        <span><i style="background:var(--accent)"></i>en meta</span>
+        <span><i style="background:#f87171"></i>sobre</span>
+        <span><i style="background:#fbbf24"></i>bajo</span>
+        <span><i style="background:#333"></i>sin registro</span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Distribución de macros</div>
+      <div class="chart-wrap small"><canvas id="macro-chart"></canvas></div>
+    </div>
+
+    <div id="h-empty" class="food-empty" style="display:none">
+      📊 Aún no hay registros. Saca una foto en la pestaña <b>Hoy</b>.
+    </div>
+
   </div>
 
   <div class="bnav">
     <button class="nb active" id="btn-hoy" onclick="showSec('hoy', this)">
       <span class="ni">🍽️</span>Hoy
+    </button>
+    <button class="nb" id="btn-juntos" onclick="showSec('juntos', this)">
+      <span class="ni">👥</span>Juntos
     </button>
     <button class="nb" id="btn-historial" onclick="showSec('historial', this)">
       <span class="ni">📊</span>Historial
@@ -732,6 +838,276 @@ function showSec(name, btn) {
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'))
   document.getElementById('sec-' + name).classList.add('active')
   btn.classList.add('active')
+  if (name === 'historial') loadHistorial(currentPeriod)
+  if (name === 'juntos')    loadJuntos()
+}
+
+// ── Juntos (compartido) ──────────────────────────────────────────────────────
+async function loadJuntos() {
+  if (!window.currentUser) return
+  const today = todayISO()
+  try {
+    const profiles = await getAllProfiles()
+    const cards = await Promise.all(
+      Object.entries(profiles).map(async ([uid, profile]) => {
+        const [entries, segLog] = await Promise.all([
+          getDayFoodLogs(uid, today),
+          getLog(uid, today).catch(() => null)
+        ])
+        const info = getDayInfo(profile, segLog)
+        const totals = entries.reduce((s, e) => ({
+          kcal:  s.kcal  + (e.calories || 0),
+          prot:  s.prot  + (e.protein  || 0),
+          carbs: s.carbs + (e.carbs    || 0),
+          fat:   s.fat   + (e.fat      || 0)
+        }), { kcal: 0, prot: 0, carbs: 0, fat: 0 })
+        const lastMeal = entries[entries.length - 1]
+        return { uid, profile, info, totals, lastMeal, count: entries.length }
+      })
+    )
+    renderJuntos(cards)
+  } catch (err) {
+    console.error('Juntos error:', err)
+    document.getElementById('juntos-list').innerHTML =
+      `<div class="food-empty">Error: ${err.message || 'al cargar'}</div>`
+  }
+}
+
+function renderJuntos(cards) {
+  const list = document.getElementById('juntos-list')
+  if (!cards.length) {
+    list.innerHTML = '<div class="food-empty">No hay perfiles disponibles</div>'
+    return
+  }
+
+  list.innerHTML = cards.map(c => {
+    const accent = c.profile.theme === 'purple' ? '#c084fc' : '#f97316'
+    const pct    = Math.min((c.totals.kcal / c.info.kcal) * 100, 100)
+    const status = c.totals.kcal === 0
+      ? '<span style="color:var(--muted)">sin registro</span>'
+      : c.totals.kcal > c.info.kcal * 1.05 ? '<span style="color:#f87171">sobre meta</span>'
+      : c.totals.kcal < c.info.kcal * 0.85 ? '<span style="color:#fbbf24">bajo meta</span>'
+      : '<span style="color:#22c55e">en meta</span>'
+
+    const lastMealHtml = c.lastMeal
+      ? `<div class="j-last"><span class="j-last-label">Última:</span>${c.lastMeal.name} · ${c.lastMeal.calories} kcal</div>`
+      : '<div class="j-last empty">Sin comidas registradas hoy</div>'
+
+    return `
+      <div class="juntos-card" style="border-left-color:${accent}">
+        <div class="j-header">
+          <div class="j-name" style="color:${accent}">${c.profile.name}</div>
+          <div class="j-day">${c.info.emoji} ${c.info.name}</div>
+        </div>
+        <div class="j-kcal-row">
+          <div class="j-total" style="color:${accent}">${c.totals.kcal}</div>
+          <div class="j-goal">/ ${c.info.kcal} kcal</div>
+        </div>
+        <div class="j-pct">${Math.round(pct)}% · ${status}</div>
+        <div class="j-progress">
+          <div class="j-progress-fill" style="width:${pct}%;background:${accent}"></div>
+        </div>
+        <div class="j-macros">
+          <span><b style="color:#f97316">${c.totals.prot}g</b>prot</span>
+          <span><b style="color:#3b82f6">${c.totals.carbs}g</b>carb</span>
+          <span><b style="color:#fbbf24">${c.totals.fat}g</b>grasa</span>
+          <span style="margin-left:auto"><b>${c.count}</b>${c.count === 1 ? 'comida' : 'comidas'}</span>
+        </div>
+        ${lastMealHtml}
+      </div>`
+  }).join('')
+}
+
+// ── Historial ────────────────────────────────────────────────────────────────
+let currentPeriod = 7
+let kcalChart  = null
+let macroChart = null
+
+function getDateRange(days) {
+  const out = []
+  const today = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    out.push(d.toISOString().split('T')[0])
+  }
+  return out
+}
+
+function getDayGoalFor(profile, dateStr, segLog) {
+  if (profile.theme === 'purple') {
+    const id = segLog?.routine_id
+    return id && TRINI_ROUTINES[id] ? TRINI_ROUTINES[id].kcal : TRINI_DEFAULT.kcal
+  }
+  const dow = new Date(dateStr + 'T12:00').getDay()
+  return BALTASAR_DAYS[dow].kcal
+}
+
+async function getSeguimientoLogsRange(uid, dates) {
+  const docs = await Promise.all(
+    dates.map(d => firestore.collection('logs').doc(uid).collection('entries').doc(d).get())
+  )
+  return docs.map((doc, i) => doc.exists ? { date: dates[i], ...doc.data() } : { date: dates[i] })
+}
+
+function selectPeriod(btn, days) {
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'))
+  btn.classList.add('active')
+  currentPeriod = days
+  loadHistorial(days)
+}
+
+async function loadHistorial(days = currentPeriod) {
+  if (!window.currentUser) return
+  const uid     = window.currentUser.uid
+  const profile = window.currentProfile
+  const dates   = getDateRange(days)
+  const fromDate = dates[0], toDate = dates[dates.length - 1]
+
+  try {
+    const [foodEntries, segLogs] = await Promise.all([
+      getWeekFoodLogs(uid, fromDate, toDate),
+      getSeguimientoLogsRange(uid, dates)
+    ])
+
+    const segByDate = Object.fromEntries(segLogs.map(l => [l.date, l]))
+    const byDate = {}
+    for (const date of dates) {
+      byDate[date] = {
+        date,
+        kcal: 0, protein: 0, carbs: 0, fat: 0,
+        goal: getDayGoalFor(profile, date, segByDate[date])
+      }
+    }
+    for (const e of foodEntries) {
+      if (byDate[e.date]) {
+        byDate[e.date].kcal    += e.calories || 0
+        byDate[e.date].protein += e.protein  || 0
+        byDate[e.date].carbs   += e.carbs    || 0
+        byDate[e.date].fat     += e.fat      || 0
+      }
+    }
+    const data = dates.map(d => byDate[d])
+
+    renderHistorialStats(data)
+    renderKcalChart(data)
+    renderMacroChart(data)
+  } catch (err) {
+    console.error('Historial error:', err)
+    showToast('Error cargando historial')
+  }
+}
+
+function renderHistorialStats(data) {
+  const tracked = data.filter(d => d.kcal > 0)
+  const empty   = tracked.length === 0
+  document.getElementById('h-empty').style.display = empty ? 'block' : 'none'
+
+  if (empty) {
+    document.getElementById('h-avg-kcal').textContent  = '—'
+    document.getElementById('h-days-goal').textContent = '—'
+    document.getElementById('h-avg-prot').textContent  = '—'
+    return
+  }
+
+  const avgKcal = Math.round(tracked.reduce((s, d) => s + d.kcal, 0)    / tracked.length)
+  const avgProt = Math.round(tracked.reduce((s, d) => s + d.protein, 0) / tracked.length)
+  const inGoal  = tracked.filter(d => d.kcal >= d.goal * 0.85 && d.kcal <= d.goal * 1.05).length
+
+  document.getElementById('h-avg-kcal').textContent  = avgKcal
+  document.getElementById('h-days-goal').textContent = `${inGoal}/${tracked.length}`
+  document.getElementById('h-avg-prot').textContent  = `${avgProt}g`
+}
+
+function shortLabel(date) {
+  const d = new Date(date + 'T12:00')
+  return `${d.getDate()}/${d.getMonth() + 1}`
+}
+
+function renderKcalChart(data) {
+  if (kcalChart) kcalChart.destroy()
+  const accent = THEMES[window.currentProfile.theme]?.accent || '#f97316'
+  const ctx = document.getElementById('kcal-chart').getContext('2d')
+
+  const colors = data.map(d => {
+    if (d.kcal === 0) return '#333'
+    if (d.kcal > d.goal * 1.05)  return '#f87171'
+    if (d.kcal < d.goal * 0.85)  return '#fbbf24'
+    return accent
+  })
+
+  kcalChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => shortLabel(d.date)),
+      datasets: [
+        { label: 'kcal', data: data.map(d => d.kcal), backgroundColor: colors, borderRadius: 6, borderSkipped: false },
+        { label: 'meta', data: data.map(d => d.goal), type: 'line',
+          borderColor: accent, borderWidth: 2, borderDash: [5, 5],
+          pointRadius: 0, fill: false, tension: 0 }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ctx.dataset.label === 'meta'
+              ? `meta: ${ctx.parsed.y} kcal`
+              : `${ctx.parsed.y} kcal`
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true,
+             ticks: { color: '#888', font: { size: 10 } },
+             grid: { color: '#222' } },
+        x: { ticks: { color: '#888', font: { size: 10 }, maxRotation: 0, autoSkipPadding: 8 },
+             grid: { display: false } }
+      }
+    }
+  })
+}
+
+function renderMacroChart(data) {
+  if (macroChart) macroChart.destroy()
+  const tracked = data.filter(d => d.kcal > 0)
+  const totals = tracked.reduce((s, d) => ({
+    p: s.p + (d.protein || 0),
+    c: s.c + (d.carbs   || 0),
+    f: s.f + (d.fat     || 0)
+  }), { p: 0, c: 0, f: 0 })
+
+  const ctx = document.getElementById('macro-chart').getContext('2d')
+  macroChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Proteína', 'Carbos', 'Grasa'],
+      datasets: [{
+        data: [totals.p * 4, totals.c * 4, totals.f * 9],  // gramos → kcal
+        backgroundColor: ['#f97316', '#3b82f6', '#fbbf24'],
+        borderColor: 'var(--card)', borderWidth: 2
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true, cutout: '62%',
+      plugins: {
+        legend: { position: 'bottom',
+                  labels: { color: '#aaa', font: { size: 11 }, boxWidth: 12, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
+              const pct = total ? Math.round(ctx.parsed * 100 / total) : 0
+              return `${ctx.label}: ${pct}%`
+            }
+          }
+        }
+      }
+    }
+  })
 }
 
 // Cerrar overlay al tocar el fondo
