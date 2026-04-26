@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Calorías</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="openai-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:     #0f0f0f;
+  --card:   #1a1a1a;
+  --card2:  #222;
+  --accent: #f97316;
+  --text:   #f5f5f5;
+  --muted:  #888;
+  --border: #2a2a2a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Login ──────────────────────────────────────────────────────────────── */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+}
+.login-card {
+  background: var(--card); border-radius: 18px; padding: 32px 24px;
+  width: 100%; max-width: 360px; border: 1px solid var(--border);
+}
+.login-logo { font-size: 36px; text-align: center; margin-bottom: 6px; }
+.login-card h2 {
+  font-size: 22px; font-weight: 900; text-align: center;
+  color: var(--accent); margin-bottom: 4px;
+}
+.login-card p { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px;
+}
+.field input {
+  width: 100%; background: var(--card2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; font-size: 15px; color: var(--text);
+  outline: none; transition: border-color .2s;
+}
+.field input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%; background: var(--accent); color: #fff; border: none;
+  border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-top: 4px;
+}
+.login-btn:disabled { opacity: .5; }
+.login-error { font-size: 13px; color: #f87171; text-align: center; margin-top: 12px; min-height: 18px; }
+
+/* ── App ────────────────────────────────────────────────────────────────── */
+#app-shell { display: none; padding-bottom: 88px; }
+
+.header {
+  background: linear-gradient(135deg, #1a1a1a, var(--bg));
+  padding: 20px 20px 14px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.header h1 { font-size: 19px; font-weight: 800; color: var(--accent); }
+.header p  { font-size: 12px; color: var(--muted); margin-top: 2px; text-transform: capitalize; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.back-btn, .logout-btn {
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; font-weight: 600;
+  border-radius: 8px; padding: 6px 12px; cursor: pointer; flex-shrink: 0;
+}
+
+/* ── Sección ────────────────────────────────────────────────────────────── */
+.sec { display: none; padding: 14px; }
+.sec.active { display: block; }
+.sec-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--muted); margin-bottom: 10px;
+}
+
+/* ── Resumen calórico ───────────────────────────────────────────────────── */
+.cal-summary {
+  background: var(--card); border-left: 4px solid var(--accent);
+  border-radius: 14px; padding: 16px; margin-bottom: 12px;
+}
+.cal-summary-top { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+.cal-consumed { font-size: 36px; font-weight: 900; color: var(--accent); line-height: 1; }
+.cal-unit     { font-size: 14px; color: var(--muted); }
+.cal-meta     { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.cal-meta span { color: var(--text); font-weight: 700; }
+.cal-progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.cal-progress-fill {
+  height: 100%; border-radius: 3px;
+  background: var(--accent); transition: width .5s ease;
+  width: 0%;
+}
+.cal-progress-fill.over { background: #f87171; }
+
+.day-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--card2));
+  color: var(--accent);
+  padding: 5px 11px; border-radius: 14px;
+  font-size: 12px; font-weight: 700;
+  margin-bottom: 10px;
+}
+.day-badge .day-emoji { font-size: 14px; }
+.day-badge b { color: var(--text); font-weight: 800; }
+
+.prot-block { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.prot-meta  { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.prot-meta b { color: var(--text); font-weight: 700; }
+.prot-progress {
+  height: 5px; background: var(--border); border-radius: 3px; overflow: hidden;
+}
+.prot-progress-fill {
+  height: 100%; width: 0%; border-radius: 3px;
+  background: #f97316; transition: width .5s ease;
+}
+.prot-progress-fill.done { background: #22c55e; }
+
+.macro-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.macro-card { background: var(--card); border-radius: 12px; padding: 11px; text-align: center; }
+.macro-val  { font-size: 18px; font-weight: 800; color: var(--accent); }
+.macro-lbl  { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+.macro-card.prot .macro-val { color: #f97316; }
+.macro-card.carb .macro-val { color: #3b82f6; }
+.macro-card.fat  .macro-val { color: #f59e0b; }
+
+/* ── Botón agregar ──────────────────────────────────────────────────────── */
+.add-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; background: var(--accent); color: #fff;
+  border: none; border-radius: 12px; padding: 15px;
+  font-size: 15px; font-weight: 800; cursor: pointer;
+  margin-bottom: 16px; -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Lista de comidas ───────────────────────────────────────────────────── */
+.food-entry {
+  background: var(--card); border-radius: 12px; padding: 13px;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+  border: 1px solid var(--border);
+  cursor: pointer; transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.food-entry:active { background: var(--card2); }
+.food-entry-info { flex: 1; min-width: 0; }
+.food-entry-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.food-entry-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.food-entry-kcal { font-size: 16px; font-weight: 800; color: var(--accent); flex-shrink: 0; }
+.food-delete {
+  background: none; border: none; color: var(--muted);
+  font-size: 18px; cursor: pointer; flex-shrink: 0; padding: 4px;
+}
+.food-empty {
+  background: var(--card); border-radius: 12px; padding: 30px 20px;
+  text-align: center; color: var(--muted); font-size: 13px;
+  border: 1px dashed var(--border);
+}
+
+/* ── Overlay de análisis ────────────────────────────────────────────────── */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
+  z-index: 200; display: none;
+  align-items: flex-end; justify-content: center; padding: 20px;
+}
+#overlay.show { display: flex; }
+.overlay-card {
+  background: var(--card); border-radius: 20px; padding: 24px;
+  width: 100%; max-width: 480px; border: 1px solid var(--border);
+}
+
+/* Loading */
+.ov-loading { text-align: center; padding: 10px 0 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 44px; height: 44px; margin: 0 auto 14px;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+.ov-loading p { font-size: 14px; color: var(--muted); }
+
+/* Resultado confirmación */
+.ov-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 12px; }
+.ov-name {
+  font-size: 19px; font-weight: 900; margin-bottom: 14px;
+  background: none; border: none; color: var(--text);
+  border-bottom: 1.5px solid var(--border); padding-bottom: 8px;
+  width: 100%; outline: none; font-family: inherit;
+}
+.ov-name:focus { border-bottom-color: var(--accent); }
+.ov-kcal-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; margin-bottom: 14px;
+}
+.ov-adj {
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--text); width: 38px; height: 38px; border-radius: 50%;
+  font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ov-kcal-val { font-size: 38px; font-weight: 900; color: var(--accent); line-height: 1; }
+.ov-kcal-unit { font-size: 14px; color: var(--muted); }
+.ov-macros {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 6px; margin-bottom: 14px;
+}
+.ov-macro {
+  background: var(--card2); border-radius: 8px; padding: 8px;
+  text-align: center;
+}
+.ov-macro-val { font-size: 15px; font-weight: 800; }
+.ov-macro-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-top: 1px; }
+.ov-portion   { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 18px; }
+.ov-actions   { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+.btn-cancel {
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 10px; padding: 13px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.btn-confirm {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 10px; padding: 13px;
+  font-size: 14px; font-weight: 800; cursor: pointer;
+}
+
+/* Error */
+.ov-error { text-align: center; padding: 8px 0; }
+.ov-error p   { font-size: 14px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+.ov-error-msg { font-size: 13px; color: #f87171; margin-bottom: 16px; }
+.btn-retry {
+  width: 100%; background: var(--card2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 10px; padding: 13px;
+  font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 8px;
+}
+
+/* ── Juntos (compartido) ────────────────────────────────────────────────── */
+.juntos-card {
+  background: var(--card); border-radius: 14px; padding: 16px;
+  margin-bottom: 12px; border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+}
+.j-header  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+.j-name    { font-size: 17px; font-weight: 800; }
+.j-day     { font-size: 11px; color: var(--muted); background: var(--card2);
+             padding: 5px 9px; border-radius: 8px; white-space: nowrap; }
+.j-kcal-row{ display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.j-total   { font-size: 32px; font-weight: 900; line-height: 1; }
+.j-goal    { font-size: 13px; color: var(--muted); }
+.j-pct     { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.j-progress{ height: 6px; background: var(--border); border-radius: 3px;
+             overflow: hidden; margin-bottom: 12px; }
+.j-progress-fill { height: 100%; transition: width .5s ease; }
+.j-macros  { display: flex; gap: 14px; font-size: 11px; color: var(--muted);
+             padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+.j-macros b { font-size: 13px; font-weight: 800; margin-right: 3px; }
+.j-last    { font-size: 12px; color: var(--text); }
+.j-last .j-last-label { color: var(--muted); margin-right: 4px; }
+.j-last.empty { color: var(--muted); font-style: italic; }
+
+/* ── Historial ──────────────────────────────────────────────────────────── */
+.period-tabs {
+  display: flex; gap: 6px; background: var(--card2); padding: 4px;
+  border-radius: 10px; margin-bottom: 14px;
+}
+.ptab {
+  flex: 1; background: none; border: none; color: var(--muted);
+  font-size: 13px; font-weight: 700; padding: 8px; border-radius: 7px;
+  cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
+}
+.ptab.active { background: var(--accent); color: #fff; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.stat-card {
+  background: var(--card); border-radius: 12px; padding: 12px 8px;
+  text-align: center; border: 1px solid var(--border);
+}
+.stat-val { font-size: 20px; font-weight: 800; color: var(--accent); }
+.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px;
+            text-transform: uppercase; letter-spacing: .4px; }
+
+.chart-card {
+  background: var(--card); border-radius: 14px; padding: 14px;
+  margin-bottom: 12px; border: 1px solid var(--border);
+}
+.chart-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--muted); margin-bottom: 10px;
+}
+.chart-wrap       { position: relative; height: 220px; }
+.chart-wrap.small { height: 180px; }
+.chart-legend {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+  font-size: 11px; color: var(--muted);
+}
+.chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend i {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+}
+
+/* ── Bottom nav ─────────────────────────────────────────────────────────── */
+.bnav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(15,15,15,.96); border-top: 1px solid var(--border);
+  padding: 10px 20px; display: flex; justify-content: space-around;
+  backdrop-filter: blur(10px); z-index: 100;
+}
+.nb {
+  background: none; border: none; color: var(--muted);
+  font-size: 11px; font-weight: 600; text-align: center;
+  cursor: pointer; padding: 4px 8px; border-radius: 8px;
+}
+.ni   { font-size: 20px; display: block; margin-bottom: 2px; }
+.nb.active { color: var(--accent); }
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; top: -50px; left: 50%; transform: translateX(-50%);
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  z-index: 999; transition: top .25s ease; white-space: nowrap;
+}
+#toast.show { top: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ════════════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🍽️</div>
+    <h2>Calorías</h2>
+    <p>Inicia sesión para registrar tu alimentación</p>
+    <form id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input id="login-password" type="password" placeholder="••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="login-btn" id="login-btn">Entrar</button>
+      <div class="login-error" id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ APP ══════════════════════════════════════════════════════════════════ -->
+<div id="app-shell">
+
+  <div class="header">
+    <div>
+      <h1 id="header-title">Calorías</h1>
+      <p id="header-sub">Cargando...</p>
+    </div>
+    <div class="header-right">
+      <button class="back-btn" onclick="window.location='seguimiento.html'">← Seguimiento</button>
+      <button class="logout-btn" onclick="handleSignOut()">Salir</button>
+    </div>
+  </div>
+
+  <!-- HOY ----------------------------------------------------------------- -->
+  <div class="sec active" id="sec-hoy">
+
+    <div class="cal-summary">
+      <div id="day-badge" class="day-badge">—</div>
+      <div class="cal-summary-top">
+        <div class="cal-consumed" id="cal-total">0</div>
+        <div class="cal-unit">kcal</div>
+      </div>
+      <div class="cal-meta">Consumidas / <span id="cal-goal">—</span> kcal</div>
+      <div class="cal-progress">
+        <div class="cal-progress-fill" id="cal-bar"></div>
+      </div>
+      <div class="prot-block">
+        <div class="prot-meta" id="prot-meta">— / — g proteína</div>
+        <div class="prot-progress">
+          <div class="prot-progress-fill" id="prot-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="macro-row">
+      <div class="macro-card prot">
+        <div class="macro-val" id="mac-prot">0<span style="font-size:12px;font-weight:400">g</span></div>
+        <div class="macro-lbl">Proteína</div>
+      </div>
+      <div class="macro-card carb">
+        <div class="macro-val" id="mac-carbs">0<span style="font-size:12px;font-weight:400">g</span></div>
+        <div class="macro-lbl">Carbos</div>
+      </div>
+      <div class="macro-card fat">
+        <div class="macro-val" id="mac-fat">0<span style="font-size:12px;font-weight:400">g</span></div>
+        <div class="macro-lbl">Grasa</div>
+      </div>
+    </div>
+
+    <label class="add-btn" for="food-input">
+      📷 Foto de comida
+    </label>
+    <input type="file" id="food-input" accept="image/*" capture="environment" style="display:none">
+
+    <div class="sec-title">Registro de hoy</div>
+    <div id="food-list"></div>
+
+  </div>
+
+  <!-- JUNTOS -------------------------------------------------------------- -->
+  <div class="sec" id="sec-juntos">
+    <div class="sec-title">Hoy en tiempo real</div>
+    <div id="juntos-list">
+      <div class="food-empty">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL ----------------------------------------------------------- -->
+  <div class="sec" id="sec-historial">
+
+    <div class="period-tabs">
+      <button class="ptab active" data-days="7"  onclick="selectPeriod(this, 7)">7 días</button>
+      <button class="ptab"        data-days="30" onclick="selectPeriod(this, 30)">30 días</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="h-avg-kcal">—</div>
+        <div class="stat-lbl">kcal promedio</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="h-days-goal">—</div>
+        <div class="stat-lbl">días en meta</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="h-avg-prot">—</div>
+        <div class="stat-lbl">proteína prom.</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Calorías por día</div>
+      <div class="chart-wrap"><canvas id="kcal-chart"></canvas></div>
+      <div class="chart-legend">
+        <span><i style="background:var(--accent)"></i>en meta</span>
+        <span><i style="background:#f87171"></i>sobre</span>
+        <span><i style="background:#fbbf24"></i>bajo</span>
+        <span><i style="background:#333"></i>sin registro</span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Distribución de macros</div>
+      <div class="chart-wrap small"><canvas id="macro-chart"></canvas></div>
+    </div>
+
+    <div id="h-empty" class="food-empty" style="display:none">
+      📊 Aún no hay registros. Saca una foto en la pestaña <b>Hoy</b>.
+    </div>
+
+  </div>
+
+  <div class="bnav">
+    <button class="nb active" id="btn-hoy" onclick="showSec('hoy', this)">
+      <span class="ni">🍽️</span>Hoy
+    </button>
+    <button class="nb" id="btn-juntos" onclick="showSec('juntos', this)">
+      <span class="ni">👥</span>Juntos
+    </button>
+    <button class="nb" id="btn-historial" onclick="showSec('historial', this)">
+      <span class="ni">📊</span>Historial
+    </button>
+  </div>
+
+</div>
+
+<!-- ══ OVERLAY ══════════════════════════════════════════════════════════════ -->
+<div id="overlay">
+  <div class="overlay-card" id="overlay-card"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Constantes ───────────────────────────────────────────────────────────────
+const THEMES = {
+  orange: { accent: '#f97316', bg: '#0f0f0f' },
+  purple: { accent: '#c084fc', bg: '#0a0a0f' }
+}
+
+// Plan semanal Baltasar: kcal según intensidad del día
+const BALTASAR_DAYS = [
+  { name: 'Bici / Cardio',  emoji: '🚴', kcal: 2200 },  // 0 Dom
+  { name: 'Descanso',       emoji: '🏖️', kcal: 2000 },  // 1 Lun
+  { name: 'PUSH',           emoji: '🏋️', kcal: 2400 },  // 2 Mar
+  { name: 'PULL',           emoji: '🏋️', kcal: 2400 },  // 3 Mié
+  { name: 'Espalda+cardio', emoji: '🔥', kcal: 2500 },  // 4 Jue
+  { name: 'Piernas',        emoji: '🦵', kcal: 2500 },  // 5 Vie
+  { name: 'Cheat day',      emoji: '🍕', kcal: 2800 }   // 6 Sáb
+]
+
+// Rutinas Trini: kcal según rutina seleccionada en seguimiento
+const TRINI_ROUTINES = {
+  A:    { name: 'Rutina A',    emoji: '💪', kcal: 1850 },
+  B:    { name: 'Rutina B',    emoji: '💪', kcal: 1850 },
+  C:    { name: 'Rutina C',    emoji: '🔥', kcal: 1900 },
+  D:    { name: 'Rutina D',    emoji: '💪', kcal: 1800 },
+  rest: { name: 'Descanso',    emoji: '🏖️', kcal: 1500 }
+}
+const TRINI_DEFAULT = { name: 'Sin definir', emoji: '🍽️', kcal: 1700 }
+
+// Meta de proteína según usuario
+function getProteinGoal(profile) {
+  return profile.theme === 'purple' ? 100 : 150
+}
+
+// Info del día (kcal + label + emoji) según perfil y log de seguimiento
+function getDayInfo(profile, seguimientoLog) {
+  if (profile.theme === 'purple') {
+    const id = seguimientoLog?.routine_id
+    return id && TRINI_ROUTINES[id] ? TRINI_ROUTINES[id] : TRINI_DEFAULT
+  }
+  return BALTASAR_DAYS[new Date().getDay()]
+}
+
+// ── Estado ───────────────────────────────────────────────────────────────────
+let todayEntries = []
+let pendingEntry = null
+let dayInfo      = null
+
+// ── Tema ─────────────────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  const t = THEMES[theme] || THEMES.orange
+  document.documentElement.style.setProperty('--accent', t.accent)
+  document.documentElement.style.setProperty('--bg', t.bg)
+  document.body.style.background = t.bg
+}
+
+// ── Resumen ──────────────────────────────────────────────────────────────────
+function renderSummary() {
+  const profile = window.currentProfile
+  const info    = dayInfo || getDayInfo(profile, null)
+  const goal    = info.kcal
+  const protGoal= getProteinGoal(profile)
+  const total   = todayEntries.reduce((s, e) => s + (e.calories || 0), 0)
+  const prot    = todayEntries.reduce((s, e) => s + (e.protein  || 0), 0)
+  const carbs   = todayEntries.reduce((s, e) => s + (e.carbs    || 0), 0)
+  const fat     = todayEntries.reduce((s, e) => s + (e.fat      || 0), 0)
+  const pct     = Math.min((total / goal) * 100, 100)
+  const protPct = Math.min((prot / protGoal) * 100, 100)
+
+  document.getElementById('cal-total').textContent  = total
+  document.getElementById('cal-goal').textContent   = goal
+  document.getElementById('mac-prot').innerHTML     = `${prot}<span style="font-size:12px;font-weight:400">g</span>`
+  document.getElementById('mac-carbs').innerHTML    = `${carbs}<span style="font-size:12px;font-weight:400">g</span>`
+  document.getElementById('mac-fat').innerHTML      = `${fat}<span style="font-size:12px;font-weight:400">g</span>`
+
+  const bar = document.getElementById('cal-bar')
+  bar.style.width = `${pct}%`
+  bar.classList.toggle('over', total > goal)
+
+  // Badge del día (rutina + meta)
+  document.getElementById('day-badge').innerHTML =
+    `<span class="day-emoji">${info.emoji}</span> ${info.name} · meta <b>${info.kcal}</b> kcal`
+
+  // Progreso de proteína
+  document.getElementById('prot-bar').style.width = `${protPct}%`
+  document.getElementById('prot-meta').innerHTML  = `${prot} / <b>${protGoal}</b> g proteína`
+  document.getElementById('prot-bar').classList.toggle('done', prot >= protGoal)
+}
+
+// ── Lista de comidas ─────────────────────────────────────────────────────────
+function renderFoodList() {
+  const list = document.getElementById('food-list')
+  if (!todayEntries.length) {
+    list.innerHTML = '<div class="food-empty">📷 Toca el botón para agregar tu primera comida del día</div>'
+    return
+  }
+  list.innerHTML = todayEntries.map(e => `
+    <div class="food-entry" onclick="editEntry('${e.id}')">
+      <div class="food-entry-info">
+        <div class="food-entry-name">${e.name}</div>
+        <div class="food-entry-meta">
+          P: ${e.protein || 0}g · C: ${e.carbs || 0}g · G: ${e.fat || 0}g
+          ${e.portion ? ' · ' + e.portion : ''}
+        </div>
+      </div>
+      <div class="food-entry-kcal">${e.calories}</div>
+      <button class="food-delete" onclick="event.stopPropagation();removeEntry('${e.id}')">✕</button>
+    </div>`).join('')
+}
+
+function editEntry(id) {
+  const entry = todayEntries.find(e => e.id === id)
+  if (!entry) return
+  pendingEntry = { ...entry, _editId: id }
+  showOverlay('confirm', pendingEntry)
+}
+
+async function loadTodayEntries() {
+  const uid = window.currentUser.uid
+  const date = todayISO()
+  const [entries, segLog] = await Promise.all([
+    getDayFoodLogs(uid, date),
+    getLog(uid, date).catch(() => null)
+  ])
+  todayEntries = entries
+  dayInfo      = getDayInfo(window.currentProfile, segLog)
+  renderSummary()
+  renderFoodList()
+}
+
+async function removeEntry(id) {
+  if (!confirm('¿Eliminar esta entrada?')) return
+  await deleteFoodEntry(window.currentUser.uid, id)
+  todayEntries = todayEntries.filter(e => e.id !== id)
+  renderSummary()
+  renderFoodList()
+  showToast('Entrada eliminada')
+}
+
+// ── Análisis de foto ─────────────────────────────────────────────────────────
+function resizeImage(file, maxSize = 900) {
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      let w = img.width, h = img.height
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+        else        { w = Math.round(w * maxSize / h); h = maxSize }
+      }
+      const c = document.createElement('canvas')
+      c.width = w; c.height = h
+      c.getContext('2d').drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(c.toDataURL('image/jpeg', 0.85).split(',')[1])
+    }
+    img.src = url
+  })
+}
+
+document.getElementById('food-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+  e.target.value = ''  // reset para poder volver a subir la misma foto
+
+  showOverlay('loading')
+  try {
+    const base64 = await resizeImage(file)
+    const result = await analyzeFoodPhoto(base64, file.type)
+    pendingEntry = result
+    showOverlay('confirm', result)
+  } catch (err) {
+    showOverlay('error', null, err.message)
+  }
+})
+
+// ── Overlay ──────────────────────────────────────────────────────────────────
+function showOverlay(state, data, errMsg) {
+  const card = document.getElementById('overlay-card')
+  const ov   = document.getElementById('overlay')
+
+  if (state === 'loading') {
+    card.innerHTML = `
+      <div class="ov-loading">
+        <div class="spinner"></div>
+        <p>Analizando tu comida...</p>
+      </div>`
+  } else if (state === 'confirm') {
+    const d = data
+    const isEdit = !!d._editId
+    card.innerHTML = `
+      <div class="ov-title">${isEdit ? '✏️ Editar comida' : '¿Qué comiste?'}</div>
+      <input class="ov-name" id="ov-name" value="${d.name}" maxlength="60">
+      <div class="ov-kcal-row">
+        <button class="ov-adj" onclick="adjustCal(-50)">−</button>
+        <div>
+          <div class="ov-kcal-val" id="ov-kcal">${d.calories}</div>
+          <div class="ov-kcal-unit" style="text-align:center">kcal</div>
+        </div>
+        <button class="ov-adj" onclick="adjustCal(50)">+</button>
+      </div>
+      <div class="ov-macros">
+        <div class="ov-macro">
+          <div class="ov-macro-val" style="color:#f97316">${d.protein || 0}g</div>
+          <div class="ov-macro-lbl">Proteína</div>
+        </div>
+        <div class="ov-macro">
+          <div class="ov-macro-val" style="color:#3b82f6">${d.carbs || 0}g</div>
+          <div class="ov-macro-lbl">Carbos</div>
+        </div>
+        <div class="ov-macro">
+          <div class="ov-macro-val" style="color:#f59e0b">${d.fat || 0}g</div>
+          <div class="ov-macro-lbl">Grasa</div>
+        </div>
+      </div>
+      <div class="ov-portion">${d.portion || ''}</div>
+      <div class="ov-actions">
+        <button class="btn-cancel" onclick="closeOverlay()">Cancelar</button>
+        <button class="btn-confirm" onclick="confirmEntry()">${isEdit ? '✓ Guardar' : '✓ Agregar'}</button>
+      </div>`
+  } else if (state === 'error') {
+    card.innerHTML = `
+      <div class="ov-error">
+        <p>No se pudo analizar la foto.</p>
+        <div class="ov-error-msg">${errMsg || 'Error desconocido'}</div>
+        <button class="btn-retry" onclick="retryPhoto()">📷 Intentar con otra foto</button>
+        <button class="btn-cancel" style="width:100%" onclick="closeOverlay()">Cancelar</button>
+      </div>`
+  }
+  ov.classList.add('show')
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show')
+  pendingEntry = null
+}
+
+function retryPhoto() {
+  closeOverlay()
+  document.getElementById('food-input').click()
+}
+
+function adjustCal(delta) {
+  const el  = document.getElementById('ov-kcal')
+  const val = Math.max(0, (parseInt(el.textContent) || 0) + delta)
+  el.textContent = val
+  if (pendingEntry) pendingEntry.calories = val
+}
+
+async function confirmEntry() {
+  if (!pendingEntry) return
+  const uid    = window.currentUser.uid
+  const name   = document.getElementById('ov-name').value.trim() || pendingEntry.name
+  const kcal   = parseInt(document.getElementById('ov-kcal').textContent) || pendingEntry.calories
+  const editId = pendingEntry._editId
+  const data = {
+    name,
+    calories: kcal,
+    protein:  pendingEntry.protein  || 0,
+    carbs:    pendingEntry.carbs    || 0,
+    fat:      pendingEntry.fat      || 0,
+    portion:  pendingEntry.portion  || ''
+  }
+
+  try {
+    if (editId) {
+      await updateFoodEntry(uid, editId, data)
+      const idx = todayEntries.findIndex(e => e.id === editId)
+      if (idx >= 0) todayEntries[idx] = { ...todayEntries[idx], ...data }
+      showToast(`✓ Actualizado — ${kcal} kcal`)
+    } else {
+      const entry = { ...data, date: todayISO() }
+      const id = await addFoodEntry(uid, entry)
+      todayEntries.push({ id, ...entry })
+      showToast(`✓ ${name} — ${kcal} kcal`)
+    }
+    renderSummary()
+    renderFoodList()
+    closeOverlay()
+  } catch (err) {
+    console.error('Save error:', err)
+    showToast(`Error: ${err.message || 'al guardar'}`)
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimer = null
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200)
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+onAuthChange(async (user) => {
+  if (user) {
+    const profile = await getProfile(user.uid)
+    if (!profile) return
+    window.currentUser    = user
+    window.currentProfile = profile
+
+    applyTheme(profile.theme)
+    document.getElementById('header-title').textContent = `Calorías · ${profile.name}`
+    document.getElementById('header-sub').textContent   =
+      new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('app-shell').style.display    = 'block'
+    await loadTodayEntries()
+  } else {
+    window.currentUser    = null
+    window.currentProfile = null
+    document.getElementById('login-screen').style.display = 'flex'
+    document.getElementById('app-shell').style.display    = 'none'
+  }
+})
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const email    = document.getElementById('login-email').value
+  const password = document.getElementById('login-password').value
+  const btn      = document.getElementById('login-btn')
+  const err      = document.getElementById('login-error')
+  btn.textContent = 'Entrando...'; btn.disabled = true; err.textContent = ''
+  try {
+    await signIn(email, password)
+  } catch {
+    err.textContent = 'Email o contraseña incorrectos'
+    btn.textContent = 'Entrar'; btn.disabled = false
+  }
+})
+
+async function handleSignOut() { await signOut() }
+
+// ── Navegación ────────────────────────────────────────────────────────────────
+function showSec(name, btn) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'))
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'))
+  document.getElementById('sec-' + name).classList.add('active')
+  btn.classList.add('active')
+  if (name === 'historial') loadHistorial(currentPeriod)
+  if (name === 'juntos')    loadJuntos()
+}
+
+// ── Juntos (compartido) ──────────────────────────────────────────────────────
+async function loadJuntos() {
+  if (!window.currentUser) return
+  const today = todayISO()
+  try {
+    const profiles = await getAllProfiles()
+    const cards = await Promise.all(
+      Object.entries(profiles).map(async ([uid, profile]) => {
+        const [entries, segLog] = await Promise.all([
+          getDayFoodLogs(uid, today),
+          getLog(uid, today).catch(() => null)
+        ])
+        const info = getDayInfo(profile, segLog)
+        const totals = entries.reduce((s, e) => ({
+          kcal:  s.kcal  + (e.calories || 0),
+          prot:  s.prot  + (e.protein  || 0),
+          carbs: s.carbs + (e.carbs    || 0),
+          fat:   s.fat   + (e.fat      || 0)
+        }), { kcal: 0, prot: 0, carbs: 0, fat: 0 })
+        const lastMeal = entries[entries.length - 1]
+        return { uid, profile, info, totals, lastMeal, count: entries.length }
+      })
+    )
+    renderJuntos(cards)
+  } catch (err) {
+    console.error('Juntos error:', err)
+    document.getElementById('juntos-list').innerHTML =
+      `<div class="food-empty">Error: ${err.message || 'al cargar'}</div>`
+  }
+}
+
+function renderJuntos(cards) {
+  const list = document.getElementById('juntos-list')
+  if (!cards.length) {
+    list.innerHTML = '<div class="food-empty">No hay perfiles disponibles</div>'
+    return
+  }
+
+  list.innerHTML = cards.map(c => {
+    const accent = c.profile.theme === 'purple' ? '#c084fc' : '#f97316'
+    const pct    = Math.min((c.totals.kcal / c.info.kcal) * 100, 100)
+    const status = c.totals.kcal === 0
+      ? '<span style="color:var(--muted)">sin registro</span>'
+      : c.totals.kcal > c.info.kcal * 1.05 ? '<span style="color:#f87171">sobre meta</span>'
+      : c.totals.kcal < c.info.kcal * 0.85 ? '<span style="color:#fbbf24">bajo meta</span>'
+      : '<span style="color:#22c55e">en meta</span>'
+
+    const lastMealHtml = c.lastMeal
+      ? `<div class="j-last"><span class="j-last-label">Última:</span>${c.lastMeal.name} · ${c.lastMeal.calories} kcal</div>`
+      : '<div class="j-last empty">Sin comidas registradas hoy</div>'
+
+    return `
+      <div class="juntos-card" style="border-left-color:${accent}">
+        <div class="j-header">
+          <div class="j-name" style="color:${accent}">${c.profile.name}</div>
+          <div class="j-day">${c.info.emoji} ${c.info.name}</div>
+        </div>
+        <div class="j-kcal-row">
+          <div class="j-total" style="color:${accent}">${c.totals.kcal}</div>
+          <div class="j-goal">/ ${c.info.kcal} kcal</div>
+        </div>
+        <div class="j-pct">${Math.round(pct)}% · ${status}</div>
+        <div class="j-progress">
+          <div class="j-progress-fill" style="width:${pct}%;background:${accent}"></div>
+        </div>
+        <div class="j-macros">
+          <span><b style="color:#f97316">${c.totals.prot}g</b>prot</span>
+          <span><b style="color:#3b82f6">${c.totals.carbs}g</b>carb</span>
+          <span><b style="color:#fbbf24">${c.totals.fat}g</b>grasa</span>
+          <span style="margin-left:auto"><b>${c.count}</b>${c.count === 1 ? 'comida' : 'comidas'}</span>
+        </div>
+        ${lastMealHtml}
+      </div>`
+  }).join('')
+}
+
+// ── Historial ────────────────────────────────────────────────────────────────
+let currentPeriod = 7
+let kcalChart  = null
+let macroChart = null
+
+function getDateRange(days) {
+  const out = []
+  const today = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    out.push(d.toISOString().split('T')[0])
+  }
+  return out
+}
+
+function getDayGoalFor(profile, dateStr, segLog) {
+  if (profile.theme === 'purple') {
+    const id = segLog?.routine_id
+    return id && TRINI_ROUTINES[id] ? TRINI_ROUTINES[id].kcal : TRINI_DEFAULT.kcal
+  }
+  const dow = new Date(dateStr + 'T12:00').getDay()
+  return BALTASAR_DAYS[dow].kcal
+}
+
+async function getSeguimientoLogsRange(uid, dates) {
+  const docs = await Promise.all(
+    dates.map(d => firestore.collection('logs').doc(uid).collection('entries').doc(d).get())
+  )
+  return docs.map((doc, i) => doc.exists ? { date: dates[i], ...doc.data() } : { date: dates[i] })
+}
+
+function selectPeriod(btn, days) {
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'))
+  btn.classList.add('active')
+  currentPeriod = days
+  loadHistorial(days)
+}
+
+async function loadHistorial(days = currentPeriod) {
+  if (!window.currentUser) return
+  const uid     = window.currentUser.uid
+  const profile = window.currentProfile
+  const dates   = getDateRange(days)
+  const fromDate = dates[0], toDate = dates[dates.length - 1]
+
+  try {
+    const [foodEntries, segLogs] = await Promise.all([
+      getWeekFoodLogs(uid, fromDate, toDate),
+      getSeguimientoLogsRange(uid, dates)
+    ])
+
+    const segByDate = Object.fromEntries(segLogs.map(l => [l.date, l]))
+    const byDate = {}
+    for (const date of dates) {
+      byDate[date] = {
+        date,
+        kcal: 0, protein: 0, carbs: 0, fat: 0,
+        goal: getDayGoalFor(profile, date, segByDate[date])
+      }
+    }
+    for (const e of foodEntries) {
+      if (byDate[e.date]) {
+        byDate[e.date].kcal    += e.calories || 0
+        byDate[e.date].protein += e.protein  || 0
+        byDate[e.date].carbs   += e.carbs    || 0
+        byDate[e.date].fat     += e.fat      || 0
+      }
+    }
+    const data = dates.map(d => byDate[d])
+
+    renderHistorialStats(data)
+    renderKcalChart(data)
+    renderMacroChart(data)
+  } catch (err) {
+    console.error('Historial error:', err)
+    showToast('Error cargando historial')
+  }
+}
+
+function renderHistorialStats(data) {
+  const tracked = data.filter(d => d.kcal > 0)
+  const empty   = tracked.length === 0
+  document.getElementById('h-empty').style.display = empty ? 'block' : 'none'
+
+  if (empty) {
+    document.getElementById('h-avg-kcal').textContent  = '—'
+    document.getElementById('h-days-goal').textContent = '—'
+    document.getElementById('h-avg-prot').textContent  = '—'
+    return
+  }
+
+  const avgKcal = Math.round(tracked.reduce((s, d) => s + d.kcal, 0)    / tracked.length)
+  const avgProt = Math.round(tracked.reduce((s, d) => s + d.protein, 0) / tracked.length)
+  const inGoal  = tracked.filter(d => d.kcal >= d.goal * 0.85 && d.kcal <= d.goal * 1.05).length
+
+  document.getElementById('h-avg-kcal').textContent  = avgKcal
+  document.getElementById('h-days-goal').textContent = `${inGoal}/${tracked.length}`
+  document.getElementById('h-avg-prot').textContent  = `${avgProt}g`
+}
+
+function shortLabel(date) {
+  const d = new Date(date + 'T12:00')
+  return `${d.getDate()}/${d.getMonth() + 1}`
+}
+
+function renderKcalChart(data) {
+  if (kcalChart) kcalChart.destroy()
+  const accent = THEMES[window.currentProfile.theme]?.accent || '#f97316'
+  const ctx = document.getElementById('kcal-chart').getContext('2d')
+
+  const colors = data.map(d => {
+    if (d.kcal === 0) return '#333'
+    if (d.kcal > d.goal * 1.05)  return '#f87171'
+    if (d.kcal < d.goal * 0.85)  return '#fbbf24'
+    return accent
+  })
+
+  kcalChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => shortLabel(d.date)),
+      datasets: [
+        { label: 'kcal', data: data.map(d => d.kcal), backgroundColor: colors, borderRadius: 6, borderSkipped: false },
+        { label: 'meta', data: data.map(d => d.goal), type: 'line',
+          borderColor: accent, borderWidth: 2, borderDash: [5, 5],
+          pointRadius: 0, fill: false, tension: 0 }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ctx.dataset.label === 'meta'
+              ? `meta: ${ctx.parsed.y} kcal`
+              : `${ctx.parsed.y} kcal`
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true,
+             ticks: { color: '#888', font: { size: 10 } },
+             grid: { color: '#222' } },
+        x: { ticks: { color: '#888', font: { size: 10 }, maxRotation: 0, autoSkipPadding: 8 },
+             grid: { display: false } }
+      }
+    }
+  })
+}
+
+function renderMacroChart(data) {
+  if (macroChart) macroChart.destroy()
+  const tracked = data.filter(d => d.kcal > 0)
+  const totals = tracked.reduce((s, d) => ({
+    p: s.p + (d.protein || 0),
+    c: s.c + (d.carbs   || 0),
+    f: s.f + (d.fat     || 0)
+  }), { p: 0, c: 0, f: 0 })
+
+  const ctx = document.getElementById('macro-chart').getContext('2d')
+  macroChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Proteína', 'Carbos', 'Grasa'],
+      datasets: [{
+        data: [totals.p * 4, totals.c * 4, totals.f * 9],  // gramos → kcal
+        backgroundColor: ['#f97316', '#3b82f6', '#fbbf24'],
+        borderColor: 'var(--card)', borderWidth: 2
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true, cutout: '62%',
+      plugins: {
+        legend: { position: 'bottom',
+                  labels: { color: '#aaa', font: { size: 11 }, boxWidth: 12, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
+              const pct = total ? Math.round(ctx.parsed * 100 / total) : 0
+              return `${ctx.label}: ${pct}%`
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+// Cerrar overlay al tocar el fondo
+document.getElementById('overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('overlay')) closeOverlay()
+})
+</script>
+</body>
+</html>
