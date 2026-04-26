@@ -1,0 +1,16 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "Worker de Cloudflare que recibe imágenes desde `calorias.html` y llama a GPT-4o-mini, manteniendo la API key fuera del cliente. Esto permite desplegar el sitio en GitHub Pages sin exponer la key.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "wrangler": "^4.85.0"
+  }
+}
