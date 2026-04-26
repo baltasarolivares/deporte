@@ -1059,9 +1059,9 @@ async function loadCompartido() {
   document.getElementById('cmp-today').innerHTML = '<div class="cmp-loading">Cargando...</div>'
   document.getElementById('cmp-month').innerHTML = ''
 
-  const myCircle = window.currentProfile.circle || 'casa'
+  const myCircle = window.currentProfile.circle || 'TriniTeam'
   const profiles = (await getAllProfiles())
-    .filter(p => (p.circle || 'casa') === myCircle)
+    .filter(p => (p.circle || 'TriniTeam') === myCircle)
   profiles.sort((a, b) => a.name.localeCompare(b.name))
 
   const now   = new Date()
