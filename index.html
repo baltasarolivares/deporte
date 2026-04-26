@@ -1,59 +1,251 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rutinas de Gym</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 40px 20px;
-      background: #f5f5f7;
-      color: #1d1d1f;
-    }
-    h1 { text-align: center; margin-bottom: 30px; }
-    .card {
-      display: block;
-      background: #fff;
-      padding: 20px 24px;
-      margin: 14px 0;
-      border-radius: 12px;
-      text-decoration: none;
-      color: inherit;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-    .card h2 { margin: 0 0 4px; font-size: 18px; }
-    .card p { margin: 0; color: #6e6e73; font-size: 14px; }
-    .card.highlight {
-      background: linear-gradient(135deg, #1a1a1a, #111);
-      color: #f5f5f5;
-      border-left: 4px solid #f97316;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .card.highlight p { color: #888; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mi Gym</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root {
+  --bg:     #0f0f0f;
+  --card:   #1a1a1a;
+  --card2:  #222;
+  --accent: #f97316;
+  --text:   #f5f5f5;
+  --muted:  #888;
+  --border: #2a2a2a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  visibility: hidden;
+}
+body.ready { visibility: visible; }
+
+/* ── Login ──────────────────────────────────────────────────────────────── */
+#login-screen {
+  display: none; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+}
+#login-screen.show { display: flex; }
+.login-card {
+  background: var(--card); border-radius: 18px; padding: 32px 24px;
+  width: 100%; max-width: 360px; border: 1px solid var(--border);
+}
+.login-logo { font-size: 44px; text-align: center; margin-bottom: 8px; }
+.login-card h2 {
+  font-size: 22px; font-weight: 900; text-align: center;
+  color: var(--accent); margin-bottom: 4px;
+}
+.login-card p { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px;
+}
+.field input {
+  width: 100%; background: var(--card2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; font-size: 15px; color: var(--text);
+  outline: none; transition: border-color .2s;
+}
+.field input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%; background: var(--accent); color: #fff; border: none;
+  border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-top: 4px;
+}
+.login-btn:disabled { opacity: .5; }
+.login-error { font-size: 13px; color: #f87171; text-align: center; margin-top: 12px; min-height: 18px; }
+
+/* ── Dashboard ──────────────────────────────────────────────────────────── */
+#dashboard {
+  display: none; max-width: 600px; margin: 0 auto; padding: 24px 20px 40px;
+}
+#dashboard.show { display: block; }
+
+.dash-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 28px;
+}
+.dash-greeting h1 {
+  font-size: 13px; color: var(--muted); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px;
+}
+.dash-greeting .name { font-size: 26px; font-weight: 900; color: var(--accent); }
+.logout-btn {
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; font-weight: 600;
+  border-radius: 8px; padding: 7px 13px; cursor: pointer; flex-shrink: 0;
+}
+
+.card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); padding: 18px 20px;
+  margin-bottom: 12px; border-radius: 14px;
+  text-decoration: none; color: inherit;
+  border: 1px solid var(--border);
+  transition: transform .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.card:active { transform: scale(.98); border-color: var(--accent); }
+.card-emoji { font-size: 28px; flex-shrink: 0; }
+.card-text  { flex: 1; min-width: 0; }
+.card-title { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
+.card-sub   { font-size: 12px; color: var(--muted); }
+.card-arrow { color: var(--muted); font-size: 18px; }
+
+.card.primary { border-left: 4px solid var(--accent); }
+.card.primary .card-title { color: var(--accent); }
+
+.section-label {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--muted);
+  margin: 18px 0 8px 4px;
+}
+.section-label:first-of-type { margin-top: 6px; }
+
+footer.foot {
+  text-align: center; color: var(--muted); font-size: 11px;
+  margin-top: 30px;
+}
+</style>
 </head>
 <body>
-  <h1>Rutinas de Gym</h1>
-  <a class="card" href="rutina_baltasar.html">
-    <h2>Rutina Baltasar</h2>
-    <p>Abrir rutina</p>
+
+<!-- LOGIN ─────────────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">💪</div>
+    <h2>Mi Gym</h2>
+    <p>Inicia sesión para acceder a tu rutina, seguimiento y calorías</p>
+    <form id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input id="login-password" type="password" placeholder="••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="login-btn" id="login-btn">Entrar</button>
+      <div class="login-error" id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<!-- DASHBOARD ─────────────────────────────────────────────────────────────── -->
+<div id="dashboard">
+
+  <div class="dash-header">
+    <div class="dash-greeting">
+      <h1 id="dash-day">—</h1>
+      <div class="name" id="dash-name">—</div>
+    </div>
+    <button class="logout-btn" onclick="handleSignOut()">Salir</button>
+  </div>
+
+  <div class="section-label">Tu rutina</div>
+  <a class="card primary" id="card-rutina" href="#">
+    <span class="card-emoji">🏋️</span>
+    <div class="card-text">
+      <div class="card-title">Mi rutina</div>
+      <div class="card-sub" id="rutina-sub">Plan personal</div>
+    </div>
+    <span class="card-arrow">›</span>
   </a>
-  <a class="card" href="rutina_Trini.html">
-    <h2>Rutina Trini</h2>
-    <p>Abrir rutina</p>
+
+  <div class="section-label">Tracking diario</div>
+  <a class="card" href="seguimiento.html">
+    <span class="card-emoji">📊</span>
+    <div class="card-text">
+      <div class="card-title">Seguimiento</div>
+      <div class="card-sub">Metas, hábitos y progreso</div>
+    </div>
+    <span class="card-arrow">›</span>
   </a>
-  <a class="card highlight" href="seguimiento.html">
-    <h2>📊 Seguimiento</h2>
-    <p>Registra tus metas diarias · Baltasar & Trini</p>
+  <a class="card" href="calorias.html">
+    <span class="card-emoji">🍽️</span>
+    <div class="card-text">
+      <div class="card-title">Calorías</div>
+      <div class="card-sub">Foto · análisis IA · meta diaria</div>
+    </div>
+    <span class="card-arrow">›</span>
   </a>
-  <a class="card highlight" href="calorias.html" style="border-left-color:#22c55e">
-    <h2>🍽️ Calorías</h2>
-    <p>Foto → análisis IA → registro diario</p>
-  </a>
+
+  <footer class="foot">
+    Mi Gym · <span id="dash-circle">—</span>
+  </footer>
+
+</div>
+
+<script>
+// ── Resolver qué rutina HTML cargar ──────────────────────────────────────────
+function resolveRoutineFile(profile) {
+  if (profile.routine_file) return profile.routine_file
+  // Fallback: usa el theme para inferir
+  if (profile.theme === 'purple') return 'rutina_Trini.html'
+  return 'rutina_baltasar.html'
+}
+
+// ── Renderizar dashboard tras login ──────────────────────────────────────────
+function renderDashboard(profile) {
+  document.getElementById('dash-name').textContent = profile.name
+  document.getElementById('dash-day').textContent =
+    new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const accent = profile.theme === 'purple' ? '#c084fc' : '#f97316'
+  document.documentElement.style.setProperty('--accent', accent)
+
+  document.getElementById('card-rutina').href = resolveRoutineFile(profile)
+  document.getElementById('rutina-sub').textContent = `Plan de ${profile.name}`
+  document.getElementById('dash-circle').textContent = profile.circle || 'sin círculo'
+}
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+onAuthChange(async (user) => {
+  document.body.classList.add('ready')
+  if (user) {
+    const profile = await getProfile(user.uid)
+    if (profile) {
+      window.currentUser    = user
+      window.currentProfile = profile
+      renderDashboard(profile)
+      document.getElementById('login-screen').classList.remove('show')
+      document.getElementById('dashboard').classList.add('show')
+    } else {
+      document.getElementById('login-error').textContent = 'Perfil no encontrado, contacta al admin'
+      await signOut()
+    }
+  } else {
+    window.currentUser    = null
+    window.currentProfile = null
+    document.getElementById('dashboard').classList.remove('show')
+    document.getElementById('login-screen').classList.add('show')
+  }
+})
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const email    = document.getElementById('login-email').value
+  const password = document.getElementById('login-password').value
+  const btn      = document.getElementById('login-btn')
+  const err      = document.getElementById('login-error')
+  btn.textContent = 'Entrando...'; btn.disabled = true; err.textContent = ''
+  try {
+    await signIn(email, password)
+  } catch {
+    err.textContent = 'Email o contraseña incorrectos'
+    btn.textContent = 'Entrar'; btn.disabled = false
+  }
+})
+
+async function handleSignOut() { await signOut() }
+</script>
 </body>
 </html>
