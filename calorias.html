@@ -897,10 +897,10 @@ function showSec(name, btn) {
 async function loadJuntos() {
   if (!window.currentUser) return
   const today    = todayISO()
-  const myCircle = window.currentProfile.circle || 'casa'
+  const myCircle = window.currentProfile.circle || 'TriniTeam'
   try {
     const profiles = (await getAllProfiles())
-      .filter(p => (p.circle || 'casa') === myCircle)
+      .filter(p => (p.circle || 'TriniTeam') === myCircle)
     const cards = await Promise.all(
       profiles.map(async (profile) => {
         const uid = profile.id
