@@ -193,18 +193,26 @@ function resolveRoutineFile(profile) {
   return 'rutina_baltasar.html'
 }
 
+// ── Mapeo de tema → color accent ─────────────────────────────────────────────
+const ACCENTS = {
+  orange: '#f97316',
+  purple: '#c084fc',
+  red:    '#ef4444',
+  Rojo:   '#ef4444'   // alias en español por si lo cargan así en Firestore
+}
+
 // ── Renderizar dashboard tras login ──────────────────────────────────────────
 function renderDashboard(profile) {
   document.getElementById('dash-name').textContent = profile.name
   document.getElementById('dash-day').textContent =
     new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 
-  const accent = profile.theme === 'purple' ? '#c084fc' : '#f97316'
+  const accent = ACCENTS[profile.theme] || '#f97316'
   document.documentElement.style.setProperty('--accent', accent)
 
   document.getElementById('card-rutina').href = resolveRoutineFile(profile)
   document.getElementById('rutina-sub').textContent = `Plan de ${profile.name}`
-  document.getElementById('dash-circle').textContent = profile.circle || 'TriniTeam'
+  document.getElementById('dash-circle').textContent = profileCircles(profile).join(' · ')
 }
 
 // ── Auth ────────────────────────────────────────────────────────────────────

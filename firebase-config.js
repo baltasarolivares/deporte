@@ -50,6 +50,13 @@ async function getAllProfiles() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
+// Devuelve los círculos del perfil como array (acepta `circles: []` o `circle: 'X'`)
+function profileCircles(profile) {
+  if (Array.isArray(profile?.circles) && profile.circles.length) return profile.circles
+  if (profile?.circle) return [profile.circle]
+  return ['TriniTeam']
+}
+
 // ─── Logs diarios ────────────────────────────────────────────────────────────
 // Estructura: logs/{userId}/entries/{YYYY-MM-DD}
 
