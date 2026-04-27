@@ -701,7 +701,9 @@ body.ready { visibility: visible; }
 // ── Constantes ───────────────────────────────────────────────────────────────
 const THEMES = {
   orange: { accent: '#f97316', bg: '#0f0f0f' },
-  purple: { accent: '#c084fc', bg: '#0a0a0f' }
+  purple: { accent: '#c084fc', bg: '#0a0a0f' },
+  red:    { accent: '#ef4444', bg: '#0f0a0a' },
+  Rojo:   { accent: '#ef4444', bg: '#0f0a0a' }   // alias español
 }
 
 // Claves para estadísticas (3 hábitos principales, iguales para ambos)
@@ -720,6 +722,19 @@ const DAY_PLAN = {
        cardio:{ icon:'🚴', title:'Cardio PM', sub:'Zona 2 · Bici o caminata intensa' } },
   5: { icon:'🦵', title:'PIERNAS',   sub:'Cuádriceps · Isquios · Glúteos · 🏠 Casa',     nut:'~2400 kcal · Carbos altos post-entreno',     autoDone:false, cardio:null },
   6: { icon:'🍕', title:'CHEAT DAY', sub:'¿Respetaste las reglas del cheat?',              nut:'Cheat controlado · Vuelve al plan mañana',   autoDone:false, cardio:null }
+}
+
+// ── Plan Samuel (Lago Ranco · ciclismo endurance) ────────────────────────────
+const SAMUEL_DAYS = {
+  0: { icon:'🚴', title:'BICI Z2 opcional', sub:'Sesión moderada · 60–75 min · Z2',          nut:'~2900 kcal · Mantenimiento',          autoDone:false, cardio:null },
+  1: { icon:'😴', title:'Descanso',         sub:'Recuperación + movilidad opcional',          nut:'~2700 kcal · Día más bajo',           autoDone:true,  cardio:null },
+  2: { icon:'💪', title:'GYM + BICI',       sub:'Tirón AM · Z2 PM · Voley noche',             nut:'~3300 kcal · Carbos altos',           autoDone:false,
+       cardio:{ icon:'🚴', title:'Bici Z2 PM', sub:'60–75 min · cadencia 88–92 rpm' } },
+  3: { icon:'🚴', title:'BICI Z2',          sub:'Base aeróbica · 75–90 min · 90 rpm',         nut:'~3000 kcal · Carbos durante',         autoDone:false, cardio:null },
+  4: { icon:'🏋️', title:'GYM + BICI',      sub:'Empuje + pierna AM · Z2 PM · Voley',         nut:'~3300 kcal · Carbos altos',           autoDone:false,
+       cardio:{ icon:'🚴', title:'Bici Z2 PM', sub:'45–60 min · tono ligero' } },
+  5: { icon:'💡', title:'Z1 / Descanso',    sub:'Opcional 30–45 min Z1 · prep sábado',        nut:'~2800 kcal · Pre-carga sábado',       autoDone:true,  cardio:null },
+  6: { icon:'🏁', title:'SALIDA LARGA',     sub:'Z2 estricto · 2–2.5h · Sesión clave',        nut:'~3800 kcal · 1 gel/40min en ruta',    autoDone:false, cardio:null }
 }
 
 // ── Rutinas Trini ─────────────────────────────────────────────────────────────
@@ -752,12 +767,18 @@ function todayShort() {
 }
 
 // ── Check-in ─────────────────────────────────────────────────────────────────
-function isTrini() { return window.currentProfile && window.currentProfile.theme === 'purple' }
+function isTrini()  { return window.currentProfile && window.currentProfile.theme === 'purple' }
+function isSamuel() { return window.currentProfile && (window.currentProfile.theme === 'red' || window.currentProfile.theme === 'Rojo') }
+function getDayPlan() {
+  const day = new Date().getDay()
+  if (isSamuel()) return SAMUEL_DAYS[day]
+  return DAY_PLAN[day]
+}
 
 function renderHoySection(profile) {
   const list = document.getElementById('habit-list')
   if (profile.theme !== 'purple') {
-    const plan = DAY_PLAN[new Date().getDay()]
+    const plan = getDayPlan()
     list.innerHTML = `
       <div class="habit-card${plan.autoDone ? ' done' : ''}" data-habit="workout_done"
            ${plan.autoDone ? '' : "onclick=\"toggleHabit('workout_done')\""}
@@ -840,7 +861,7 @@ async function loadTodayCheckin() {
     todayLog.routine_id   = log.routine_id || null
     if (isTrini()) todayLog.workout_done = !!todayLog.routine_id && todayLog.routine_id !== 'rest'
   }
-  if (!isTrini() && DAY_PLAN[new Date().getDay()].autoDone) todayLog.workout_done = true
+  if (!isTrini() && getDayPlan().autoDone) todayLog.workout_done = true
   if (isTrini()) updateNutSubtitle()
   renderCheckin()
 }
@@ -852,7 +873,7 @@ function renderCheckin() {
     total = 3
     renderRoutineSelector()
   } else {
-    const keys = DAY_PLAN[new Date().getDay()].cardio
+    const keys = getDayPlan().cardio
       ? ['workout_done','nutrition_ok','cardio_done','sleep_ok']
       : HABIT_KEYS
     done  = keys.filter(k => todayLog[k]).length
@@ -1053,15 +1074,15 @@ const HABITS_DISPLAY = [
   { key: 'cardio_done',  icon: '🚴', name: 'Cardio'    },
   { key: 'sleep_ok',     icon: '😴', name: 'Descanso'  }
 ]
-const COLOR = { orange: '#f97316', purple: '#c084fc' }
+const COLOR = { orange: '#f97316', purple: '#c084fc', red: '#ef4444', Rojo: '#ef4444' }
 
 async function loadCompartido() {
   document.getElementById('cmp-today').innerHTML = '<div class="cmp-loading">Cargando...</div>'
   document.getElementById('cmp-month').innerHTML = ''
 
-  const myCircle = window.currentProfile.circle || 'TriniTeam'
+  const myCircles = profileCircles(window.currentProfile)
   const profiles = (await getAllProfiles())
-    .filter(p => (p.circle || 'TriniTeam') === myCircle)
+    .filter(p => profileCircles(p).some(c => myCircles.includes(c)))
   profiles.sort((a, b) => a.name.localeCompare(b.name))
 
   const now   = new Date()
@@ -1077,38 +1098,38 @@ async function loadCompartido() {
 }
 
 function renderCompartido(profiles, todayLogs, monthLogs, year, month) {
-  const [p1, p2]   = profiles
-  const [l1, l2]   = todayLogs.map(l => l || {})
-  const [ml1, ml2] = monthLogs
-  const c1 = COLOR[p1.theme] || COLOR.orange
-  const c2 = COLOR[p2.theme] || COLOR.purple
-  const cnt1 = HABIT_KEYS.filter(k => l1[k]).length
-  const cnt2 = HABIT_KEYS.filter(k => l2[k]).length
+  const logs    = todayLogs.map(l => l || {})
+  const colors  = profiles.map(p => COLOR[p.theme] || COLOR.orange)
+  const counts  = logs.map(l => HABIT_KEYS.filter(k => l[k]).length)
+  const N       = profiles.length
+
+  // Grids dinámicos para que crezcan con la cantidad de perfiles del círculo
+  const usersGrid  = `style="grid-template-columns: repeat(${N}, 1fr)"`
+  const rowGrid    = `style="grid-template-columns: 1fr ${'auto '.repeat(N).trim()}"`
+  const scoresGrid = `style="grid-template-columns: repeat(${N}, 1fr)"`
 
   // ── Tarjeta de hoy
   document.getElementById('cmp-today').innerHTML = `
     <div class="cmp-card-header">
       <div class="cmp-card-title">Hoy · ${todayISO()}</div>
-      <div class="cmp-users">
-        <div class="cmp-user-name" style="color:${c1}">${p1.name}</div>
-        <div class="cmp-user-name" style="color:${c2}">${p2.name}</div>
+      <div class="cmp-users" ${usersGrid}>
+        ${profiles.map((p, i) => `
+          <div class="cmp-user-name" style="color:${colors[i]}">${p.name}</div>
+        `).join('')}
       </div>
     </div>
     ${HABITS_DISPLAY.map(h => `
-      <div class="cmp-habit-row">
+      <div class="cmp-habit-row" ${rowGrid}>
         <div class="cmp-habit-label">${h.icon} ${h.name}</div>
-        <div class="cmp-status">${l1[h.key] ? '✅' : '⬜'}</div>
-        <div class="cmp-status">${l2[h.key] ? '✅' : '⬜'}</div>
+        ${logs.map(l => `<div class="cmp-status">${l[h.key] ? '✅' : '⬜'}</div>`).join('')}
       </div>`).join('')}
-    <div class="cmp-scores">
-      <div>
-        <div class="cmp-score" style="color:${c1}">${cnt1}/4</div>
-        <div class="cmp-score-sub">${Math.round(cnt1 / 4 * 100)}% hoy</div>
-      </div>
-      <div>
-        <div class="cmp-score" style="color:${c2}">${cnt2}/4</div>
-        <div class="cmp-score-sub">${Math.round(cnt2 / 4 * 100)}% hoy</div>
-      </div>
+    <div class="cmp-scores" ${scoresGrid}>
+      ${counts.map((c, i) => `
+        <div>
+          <div class="cmp-score" style="color:${colors[i]}">${c}/${HABIT_KEYS.length}</div>
+          <div class="cmp-score-sub">${Math.round(c / HABIT_KEYS.length * 100)}% hoy</div>
+        </div>
+      `).join('')}
     </div>`
 
   // ── Stats del mes
@@ -1133,35 +1154,27 @@ function renderCompartido(profiles, todayLogs, monthLogs, year, month) {
     return { days: active.length, streak, avg }
   }
 
-  const s1 = calcStats(ml1)
-  const s2 = calcStats(ml2)
+  const stats = monthLogs.map(calcStats)
   const monthLabel = new Date(year, month - 1, 1)
     .toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
     .replace(/^\w/, c => c.toUpperCase())
 
+  const statRow = (label, fmt) => `
+    <div class="cmp-stat-row" ${rowGrid}>
+      <div class="cmp-stat-label">${label}</div>
+      ${stats.map((s, i) => `<div class="cmp-stat-val" style="color:${colors[i]}">${fmt(s)}</div>`).join('')}
+    </div>`
+
   document.getElementById('cmp-month').innerHTML = `
     <div class="cmp-month-card">
       <div class="cmp-month-header">${monthLabel}</div>
-      <div class="cmp-stat-row">
+      <div class="cmp-stat-row" ${rowGrid}>
         <div class="cmp-stat-label"></div>
-        <div class="cmp-stat-val" style="color:${c1}">${p1.name}</div>
-        <div class="cmp-stat-val" style="color:${c2}">${p2.name}</div>
+        ${profiles.map((p, i) => `<div class="cmp-stat-val" style="color:${colors[i]}">${p.name}</div>`).join('')}
       </div>
-      <div class="cmp-stat-row">
-        <div class="cmp-stat-label">Días activos</div>
-        <div class="cmp-stat-val" style="color:${c1}">${s1.days}</div>
-        <div class="cmp-stat-val" style="color:${c2}">${s2.days}</div>
-      </div>
-      <div class="cmp-stat-row">
-        <div class="cmp-stat-label">Racha</div>
-        <div class="cmp-stat-val" style="color:${c1}">${s1.streak > 0 ? s1.streak + ' 🔥' : '0'}</div>
-        <div class="cmp-stat-val" style="color:${c2}">${s2.streak > 0 ? s2.streak + ' 🔥' : '0'}</div>
-      </div>
-      <div class="cmp-stat-row">
-        <div class="cmp-stat-label">Promedio</div>
-        <div class="cmp-stat-val" style="color:${c1}">${s1.avg}%</div>
-        <div class="cmp-stat-val" style="color:${c2}">${s2.avg}%</div>
-      </div>
+      ${statRow('Días activos', s => s.days)}
+      ${statRow('Racha',        s => s.streak > 0 ? s.streak + ' 🔥' : '0')}
+      ${statRow('Promedio',     s => s.avg + '%')}
     </div>`
 }
 

@@ -527,7 +527,9 @@ body.ready { visibility: visible; }
 // ── Constantes ───────────────────────────────────────────────────────────────
 const THEMES = {
   orange: { accent: '#f97316', bg: '#0f0f0f' },
-  purple: { accent: '#c084fc', bg: '#0a0a0f' }
+  purple: { accent: '#c084fc', bg: '#0a0a0f' },
+  red:    { accent: '#ef4444', bg: '#0f0a0a' },
+  Rojo:   { accent: '#ef4444', bg: '#0f0a0a' }   // alias español
 }
 
 // Plan semanal Baltasar: kcal según intensidad del día
@@ -539,6 +541,17 @@ const BALTASAR_DAYS = [
   { name: 'Espalda+cardio', emoji: '🔥', kcal: 2500 },  // 4 Jue
   { name: 'Piernas',        emoji: '🦵', kcal: 2500 },  // 5 Vie
   { name: 'Cheat day',      emoji: '🍕', kcal: 2800 }   // 6 Sáb
+]
+
+// Plan semanal Samuel (Lago Ranco · ciclismo endurance · 90 kg, FTP 270W)
+const SAMUEL_DAYS = [
+  { name: 'Bici Z2 opcional',   emoji: '🚴', kcal: 2900 },  // 0 Dom
+  { name: 'Descanso',           emoji: '😴', kcal: 2700 },  // 1 Lun
+  { name: 'Gym + Bici + Voley', emoji: '🏋️', kcal: 3300 },  // 2 Mar
+  { name: 'Bici Z2 base',       emoji: '🚴', kcal: 3000 },  // 3 Mié
+  { name: 'Gym + Bici + Voley', emoji: '🔥', kcal: 3300 },  // 4 Jue
+  { name: 'Z1 / Descanso',      emoji: '💡', kcal: 2800 },  // 5 Vie
+  { name: 'Salida larga 🚴',    emoji: '🏁', kcal: 3800 }   // 6 Sáb
 ]
 
 // Rutinas Trini: kcal según rutina seleccionada en seguimiento
@@ -553,7 +566,9 @@ const TRINI_DEFAULT = { name: 'Sin definir', emoji: '🍽️', kcal: 1700 }
 
 // Meta de proteína según usuario
 function getProteinGoal(profile) {
-  return profile.theme === 'purple' ? 100 : 150
+  if (profile.theme === 'purple')                            return 100   // Trini
+  if (profile.theme === 'red' || profile.theme === 'Rojo')   return 150   // Samuel · 90kg × 1.6
+  return 150                                                              // Baltasar
 }
 
 // Info del día (kcal + label + emoji) según perfil y log de seguimiento
@@ -561,6 +576,9 @@ function getDayInfo(profile, seguimientoLog) {
   if (profile.theme === 'purple') {
     const id = seguimientoLog?.routine_id
     return id && TRINI_ROUTINES[id] ? TRINI_ROUTINES[id] : TRINI_DEFAULT
+  }
+  if (profile.theme === 'red' || profile.theme === 'Rojo') {
+    return SAMUEL_DAYS[new Date().getDay()]
   }
   return BALTASAR_DAYS[new Date().getDay()]
 }
@@ -897,10 +915,10 @@ function showSec(name, btn) {
 async function loadJuntos() {
   if (!window.currentUser) return
   const today    = todayISO()
-  const myCircle = window.currentProfile.circle || 'TriniTeam'
+  const myCircles = profileCircles(window.currentProfile)
   try {
     const profiles = (await getAllProfiles())
-      .filter(p => (p.circle || 'TriniTeam') === myCircle)
+      .filter(p => profileCircles(p).some(c => myCircles.includes(c)))
     const cards = await Promise.all(
       profiles.map(async (profile) => {
         const uid = profile.id
@@ -935,7 +953,7 @@ function renderJuntos(cards) {
   }
 
   list.innerHTML = cards.map(c => {
-    const accent = c.profile.theme === 'purple' ? '#c084fc' : '#f97316'
+    const accent = (THEMES[c.profile.theme] || THEMES.orange).accent
     const pct    = Math.min((c.totals.kcal / c.info.kcal) * 100, 100)
     const status = c.totals.kcal === 0
       ? '<span style="color:var(--muted)">sin registro</span>'
@@ -994,6 +1012,7 @@ function getDayGoalFor(profile, dateStr, segLog) {
     return id && TRINI_ROUTINES[id] ? TRINI_ROUTINES[id].kcal : TRINI_DEFAULT.kcal
   }
   const dow = new Date(dateStr + 'T12:00').getDay()
+  if (profile.theme === 'red' || profile.theme === 'Rojo') return SAMUEL_DAYS[dow].kcal
   return BALTASAR_DAYS[dow].kcal
 }
 

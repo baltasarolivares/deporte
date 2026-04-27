@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Plan Lago Ranco 2026 — Samuel</title>
+<style>
+:root{--bg:#0a0805;--card:#181210;--card2:#201a14;--accent:#ef4444;--orange:#f97316;--green:#22c55e;--blue:#60a5fa;--yellow:#fbbf24;--purple:#a78bfa;--teal:#2dd4bf;--text:#f5f0eb;--muted:#8a7a6a;--border:#2e2218}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
+.header{background:linear-gradient(135deg,#1a0a08,#0a0805);padding:20px 18px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.header h1{font-size:19px;font-weight:800;background:linear-gradient(90deg,#ef4444,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{font-size:12px;color:var(--muted);margin-top:2px}
+.hstats{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.stat{background:var(--card2);border-radius:7px;padding:4px 9px;font-size:11px;color:var(--muted)}
+.stat span{color:var(--text);font-weight:600}
+.stat.race{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3)}
+.stat.race span{color:#ef4444}
+/* FASE TABS */
+.fase-tabs{display:flex;overflow-x:auto;padding:9px 14px;gap:7px;background:var(--bg);border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:78px;z-index:99}
+.fase-tabs::-webkit-scrollbar{display:none}
+.ftab{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent}
+.ftab.active.f1{background:var(--accent);border-color:var(--accent);color:#fff}
+.ftab.active.f2{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.ftab.active.f3{background:var(--orange);border-color:var(--orange);color:#fff}
+.ftab.active.f4{background:var(--green);border-color:var(--green);color:#fff}
+.ftab.f2{border-color:#3b82f6;color:#3b82f6}
+.ftab.f3{border-color:var(--orange);color:var(--orange)}
+.ftab.f4{border-color:var(--green);color:var(--green)}
+/* DAY TABS */
+.day-tabs{display:flex;overflow-x:auto;padding:8px 14px;gap:6px;background:var(--bg);border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:126px;z-index:98}
+.day-tabs::-webkit-scrollbar{display:none}
+.dtab{flex-shrink:0;padding:5px 12px;border-radius:16px;border:1.5px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent}
+.dtab.active{background:var(--card2);color:var(--text);border-color:var(--muted)}
+/* PHASE WRAPPERS */
+.phase-wrap{display:none}.phase-wrap.active{display:block}
+.day-content{display:none;padding:13px}.day-content.active{display:block}
+/* HEADERS */
+.dhead{border-radius:13px;padding:14px;margin-bottom:11px;background:var(--card)}
+.dhead.f1{border-left:4px solid var(--accent)}.dhead.f2{border-left:4px solid #3b82f6}
+.dhead.f3{border-left:4px solid var(--orange)}.dhead.f4{border-left:4px solid var(--green)}
+.dhead.rest{border-left:4px solid #444}
+.dlabel{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;margin-bottom:3px}
+.dlabel.f1{color:var(--accent)}.dlabel.f2{color:#3b82f6}.dlabel.f3{color:var(--orange)}.dlabel.f4{color:var(--green)}.dlabel.rest{color:#555}
+.dtitle{font-size:22px;font-weight:900;line-height:1.1}
+.dsub{font-size:13px;color:var(--muted);margin-top:3px}
+.dmeta{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.badge{background:var(--card2);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--muted)}
+.badge.r{background:rgba(239,68,68,.12);color:var(--accent);border:1px solid rgba(239,68,68,.2)}
+.badge.b{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+.badge.o{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.2)}
+.badge.g{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.badge.p{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+.badge.y{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.2)}
+/* SECTION TITLE */
+.stitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:15px 0 7px}
+/* EXERCISE */
+.ex{background:var(--card);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.exn{width:26px;height:26px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;background:var(--accent)}
+.exn.s{background:var(--orange)}.exn.c{background:#555}.exn.b{background:#3b82f6}.exn.m{background:var(--purple)}
+.exname{font-size:14px;font-weight:600;line-height:1.3}
+.exmeta{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.extag{background:var(--card2);border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600;color:var(--accent)}
+.extag.s{color:var(--orange)}.extag.n{color:var(--muted)}.extag.g{color:var(--green)}.extag.b{color:#60a5fa}
+.exnote{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+/* BIKE CARD */
+.bikecard{border-radius:12px;padding:13px;margin-bottom:9px}
+.bikecard.z1{background:linear-gradient(135deg,#0d1008,#111408);border:1px solid #1e2e10}
+.bikecard.z2{background:linear-gradient(135deg,#081408,#0a1a0a);border:1px solid #0f3a0f}
+.bikecard.z4{background:linear-gradient(135deg,#160a04,#1e0e06);border:1px solid #3a1a06}
+.bikecard.z5{background:linear-gradient(135deg,#180606,#200808);border:1px solid #4a0a0a}
+.bikecard.race{background:linear-gradient(135deg,#1a0808,#220a0a);border:2px solid rgba(239,68,68,.4)}
+.bikecard.ski{background:linear-gradient(135deg,#060e18,#081220);border:1px solid #0f2a4a}
+.bktitle{font-size:13px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:7px}
+.bkzone{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px}
+.z1 .bkzone{background:rgba(107,114,128,.15);color:#9ca3af}
+.z2 .bkzone{background:rgba(34,197,94,.12);color:var(--green)}
+.z4 .bkzone{background:rgba(249,115,22,.12);color:var(--orange)}
+.z5 .bkzone{background:rgba(239,68,68,.12);color:var(--accent)}
+.race .bkzone{background:rgba(239,68,68,.2);color:#fca5a5}
+.ski .bkzone{background:rgba(96,165,250,.12);color:#93c5fd}
+.bkdetail{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.bknote{font-size:12px;color:var(--muted);line-height:1.45}
+.bkwatts{font-size:11px;font-weight:600;margin-top:5px}
+.z2 .bkwatts{color:var(--green)}.z4 .bkwatts{color:var(--orange)}.z5 .bkwatts{color:var(--accent)}.race .bkwatts{color:#fca5a5}
+/* TIP */
+.tip{background:var(--card);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.ticon{font-size:18px;flex-shrink:0;margin-top:1px}
+.ttext{font-size:12px;color:var(--muted);line-height:1.5}
+.ttext strong{color:var(--text)}
+/* REST */
+.restcard{background:var(--card);border-radius:14px;padding:24px 20px;text-align:center;margin-bottom:12px}
+/* RACE CARD */
+.racecard{background:linear-gradient(135deg,#1a0808,#200a0a);border:2px solid rgba(239,68,68,.5);border-radius:14px;padding:18px;text-align:center;margin-bottom:12px}
+.racecard h2{font-size:26px;font-weight:900;color:var(--accent);margin-bottom:4px}
+.racecard p{font-size:14px;color:#8a4040;line-height:1.6;margin-bottom:12px}
+.race-stats{display:flex;justify-content:space-around}
+.rs-val{font-size:20px;font-weight:800;color:var(--text)}
+.rs-label{font-size:10px;color:var(--muted);text-transform:uppercase;margin-top:2px}
+/* CHECKPOINT */
+.checkpoint{background:linear-gradient(135deg,#0d1a0d,#111f0d);border:1px solid #1e3a1e;border-radius:12px;padding:13px;margin-bottom:8px}
+.cp-title{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.cp-item{font-size:13px;color:#5a8a5a;padding:4px 0;border-bottom:1px solid #1e2e1e;display:flex;align-items:center;gap:8px}
+.cp-item:last-child{border-bottom:none}
+/* METRIC TABLE */
+.metric-table{background:var(--card);border-radius:12px;overflow:hidden;margin-bottom:10px}
+.mt-header{background:linear-gradient(135deg,#1a0a08,#200e08);padding:10px 13px;border-bottom:1px solid var(--border)}
+.mt-header h3{font-size:13px;font-weight:700;color:var(--accent)}
+.mt-colhead{display:flex;padding:6px 13px;border-bottom:1px solid var(--border)}
+.mt-colhead span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.mt-row{display:flex;align-items:center;padding:9px 13px;border-bottom:1px solid var(--border)}
+.mt-row:last-child{border-bottom:none}
+.mt-label{font-size:13px;color:var(--muted);flex:1}
+.mt-now{font-size:13px;font-weight:600;color:var(--text);width:65px;text-align:center}
+.mt-goal{font-size:13px;font-weight:700;color:var(--green);width:90px;text-align:center}
+.mt-delta{font-size:11px;font-weight:700;color:var(--accent);width:55px;text-align:right}
+/* ZONE TABLE */
+.zt-row{display:flex;align-items:center;padding:8px 13px;border-bottom:1px solid var(--border);background:var(--card)}
+.zt-row:last-child{border-bottom:none;border-radius:0 0 12px 12px}
+.zt-row:first-child{border-radius:12px 12px 0 0}
+.zt-zone{font-size:12px;font-weight:700;width:38px}
+.zt-name{font-size:12px;color:var(--muted);flex:1}
+.zt-watts{font-size:12px;font-weight:600;width:95px;text-align:right}
+/* PALANCAS */
+.palanca{border-radius:13px;padding:14px;margin-bottom:9px}
+.palanca.p1{background:linear-gradient(135deg,#150a0a,#1e0d0d);border:1px solid #3a1010}
+.palanca.p2{background:linear-gradient(135deg,#0a1015,#0d141e);border:1px solid #103050}
+.palanca.p3{background:linear-gradient(135deg,#0a1a0a,#0d1f0d);border:1px solid #1a3a1a}
+.pal-num{font-size:30px;font-weight:900;line-height:1;margin-bottom:5px}
+.p1 .pal-num{color:var(--accent)}.p2 .pal-num{color:#60a5fa}.p3 .pal-num{color:var(--green)}
+.pal-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:5px}
+.pal-sub{font-size:12px;line-height:1.55}
+.p1 .pal-sub{color:#8a4040}.p2 .pal-sub{color:#406080}.p3 .pal-sub{color:#4a7a4a}
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,8,5,.97);border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-around;backdrop-filter:blur(12px);z-index:100}
+.nb{background:none;border:none;color:var(--muted);font-size:10px;font-weight:600;text-align:center;cursor:pointer;padding:4px 6px;border-radius:8px}
+.nb .ni{font-size:17px;display:block;margin-bottom:2px}
+.nb.active{color:var(--accent)}
+#sec-metricas,#sec-palancas{display:none;padding:13px}
+.back-bar{position:sticky;top:0;background:var(--bg);padding:10px 16px;z-index:101;border-bottom:1px solid var(--border)}
+.back-bar a{color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.back-bar a:active{color:var(--accent)}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  document.documentElement.style.visibility = 'hidden'
+  onAuthChange(user => {
+    if (!user) location.replace('index.html')
+    else document.documentElement.style.visibility = 'visible'
+  })
+</script>
+</head>
+<body>
+
+<div class="back-bar"><a href="index.html">← Inicio</a></div>
+
+<div class="header">
+  <h1>🔴 Plan Lago Ranco 2026</h1>
+  <p>Samuel · 28 semanas · Scotiabank Grand Prix</p>
+  <div class="hstats">
+    <div class="stat">90 kg · <span>270W FTP</span></div>
+    <div class="stat">3.0 → <span>3.5–3.8 W/kg</span></div>
+    <div class="stat race">🏁 <span>7 nov · 114 km</span></div>
+  </div>
+</div>
+
+<!-- FASE TABS -->
+<div class="fase-tabs" id="faseTabs">
+  <div class="ftab f1 active" onclick="showFase('f1')">FASE 1</div>
+  <div class="ftab f2" onclick="showFase('f2')">FASE 2</div>
+  <div class="ftab f3" onclick="showFase('f3')">FASE 3</div>
+  <div class="ftab f4" onclick="showFase('f4')">FASE 4</div>
+</div>
+
+<!-- DAY TABS (shared, updated by JS) -->
+<div class="day-tabs" id="dayTabs"></div>
+
+<!-- ══════════════ FASE 1 ══════════════ -->
+<div class="phase-wrap active" id="pw-f1">
+
+  <!-- F1 LUN -->
+  <div class="day-content active" id="f1-lun">
+    <div class="dhead rest"><div class="dlabel rest">Lunes · Fase 1</div><div class="dtitle">Descanso activo</div><div class="dsub">Recuperación + movilidad</div></div>
+    <div class="restcard">
+      <div style="font-size:44px;margin-bottom:8px">😴</div>
+      <div style="font-size:20px;font-weight:800;color:#555">Descanso</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5">El músculo y el motor aeróbico se adaptan en reposo.<br>No agregar sesiones extra "para estar seguro".</div>
+    </div>
+    <div class="stitle">Movilidad opcional · 15–20 min</div>
+    <div class="tip"><div class="ticon">🧘</div><div class="ttext">Movilidad de cadera y tobillo, foam roller en cuádriceps e isquios. No es entrenamiento, es mantenimiento. Si el fin de semana fue duro, prioridad al descanso total.</div></div>
+  </div>
+
+  <!-- F1 MAR -->
+  <div class="day-content" id="f1-mar">
+    <div class="dhead f1"><div class="dlabel f1">Martes · Fase 1 · Casa/Gym</div><div class="dtitle">GYM + BICI + VOLEY</div><div class="dsub">Fuerza tirón · Z2 tarde · Voley noche</div><div class="dmeta"><div class="badge p">🏋️ Gym 7am</div><div class="badge r">🚴 Z2 PM</div><div class="badge y">🏐 Voley</div></div></div>
+    <div class="stitle">Gym AM — Tirón + Pierna posterior</div>
+    <div class="ex"><div class="exn">1</div><div><div class="exname">Peso Muerto con Barra</div><div class="exmeta"><div class="extag">4 series</div><div class="extag">5 reps</div><div class="extag n">⏳ 3 min</div><div class="extag g">Sem 1: 130kg → +2.5kg/sem</div></div><div class="exnote">Ejercicio rey de la fase. Espalda neutra, empuje de piso. Meta al fin de Fase 1: 160 kg. La fuerza posterior se traduce directamente en potencia en subidas.</div></div></div>
+    <div class="ex"><div class="exn">2</div><div><div class="exname">Remo con Barra</div><div class="exmeta"><div class="extag">4 series</div><div class="extag">6 reps</div><div class="extag n">⏳ 2 min</div></div><div class="exnote">Torso a 45°, jalar hacia el abdomen bajo. Escápulas activas. Estabilidad de espalda en bici = este ejercicio.</div></div></div>
+    <div class="ex"><div class="exn">3</div><div><div class="exname">Dominadas (con lastre si aplica)</div><div class="exmeta"><div class="extag">3 series</div><div class="extag">6–8 reps</div><div class="extag n">⏳ 2 min</div></div><div class="exnote">Sin lastre si se siente pesado, +5–10 kg si es fácil. Buen indicador de relación fuerza/peso que mejora a lo largo del plan.</div></div></div>
+    <div class="ex"><div class="exn c">4</div><div><div class="exname">Core — Dead Bug + Plancha</div><div class="exmeta"><div class="extag n">3 series</div><div class="extag n">10 reps + 45 seg</div></div><div class="exnote">Core antirotacional. 5 min al final, nunca saltarlo. Estabilidad de pelvis = no perder potencia al pedalear duro.</div></div></div>
+    <div class="stitle">Tarde — Bici Z2</div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 continua <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60–75 min · ritmo conversacional</div>
+      <div class="bknote">Cadencia 88–92 rpm. Si el gym dejó las piernas cargadas, bajar a 45 min sin culpa. Consistencia semanal > una sesión perfecta.</div>
+      <div class="bkwatts">Zona 2: 149–202W (55–75% FTP)</div>
+    </div>
+    <div class="stitle">Noche — Voley</div>
+    <div class="tip"><div class="ticon">🏐</div><div class="ttext">El voley es descanso activo disfrazado de competencia. No es problema de recuperación si la bici de la tarde fue suave.</div></div>
+  </div>
+
+  <!-- F1 MIE -->
+  <div class="day-content" id="f1-mie">
+    <div class="dhead f1"><div class="dlabel f1">Miércoles · Fase 1</div><div class="dtitle">BICI Z2</div><div class="dsub">Sesión aeróbica principal de la semana</div><div class="dmeta"><div class="badge r">🚴 Z2 75–90 min</div><div class="badge">Cadencia 90 rpm</div></div></div>
+    <div class="stitle">Sesión principal</div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 — Sesión de base <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">75–90 min · 149–202W · cadencia 90 rpm</div>
+      <div class="bknote">El miércoles es el día para acumular tiempo aeróbico sin distracciones. Terreno plano o rodillo. Enfocarse en mantener la cadencia alta (90 rpm) y que la potencia quede en Z2 sin salirse. Respiración nasal si se puede.</div>
+      <div class="bkwatts">Zona 2: 149–202W · FC objetivo: 125–145 ppm</div>
+    </div>
+    <div class="tip"><div class="ticon">📊</div><div class="ttext"><strong>La cadencia importa:</strong> a 90 rpm con la misma potencia que a 70 rpm, se usa más el sistema aeróbico y menos la fuerza muscular. Esto entrena la eficiencia que se paga en los últimos 40 km del Lago Ranco.</div></div>
+  </div>
+
+  <!-- F1 JUE -->
+  <div class="day-content" id="f1-jue">
+    <div class="dhead f1"><div class="dlabel f1">Jueves · Fase 1 · Casa/Gym</div><div class="dtitle">GYM + BICI + VOLEY</div><div class="dsub">Fuerza empuje + pierna · Z2 tarde · Voley noche</div><div class="dmeta"><div class="badge p">🏋️ Gym 7am</div><div class="badge r">🚴 Z2 PM</div><div class="badge y">🏐 Voley</div></div></div>
+    <div class="stitle">Gym AM — Empuje + Pierna anterior</div>
+    <div class="ex"><div class="exn s">1</div><div><div class="exname">Sentadilla con Barra</div><div class="exmeta"><div class="extag s">4 series</div><div class="extag s">5 reps</div><div class="extag n">⏳ 3 min</div><div class="extag g">Sem 1: 105kg → +2.5kg/sem</div></div><div class="exnote">Profunda, espalda neutra, rodillas en línea con pies. Meta Fase 1: 132 kg. La sentadilla construye el cuádriceps que pedalea los últimos 40 km.</div></div></div>
+    <div class="ex"><div class="exn s">2</div><div><div class="exname">Press de Banca</div><div class="exmeta"><div class="extag s">4 series</div><div class="extag s">5 reps</div><div class="extag n">⏳ 2 min</div><div class="extag g">Sem 1: 75kg → meta 88kg</div></div><div class="exnote">Menos relevante para bici pero esencial para equilibrio muscular y posición en manillar. Progresión lenta y segura.</div></div></div>
+    <div class="ex"><div class="exn s">3</div><div><div class="exname">Press Militar con Barra</div><div class="exmeta"><div class="extag s">3 series</div><div class="extag s">6 reps</div><div class="extag n">⏳ 2 min</div></div><div class="exnote">Estabilización de columna y hombros. Directamente relacionado con la postura en el manillar durante horas de carrera.</div></div></div>
+    <div class="ex"><div class="exn c">4</div><div><div class="exname">Hollow Hold + Ab Wheel</div><div class="exmeta"><div class="extag n">3 series</div><div class="extag n">30 seg + 10 reps</div></div><div class="exnote">Core anterior. Sin core fuerte, la potencia de piernas se disipa en la cintura al pedalear duro en subidas.</div></div></div>
+    <div class="stitle">Tarde — Bici Z2 suave</div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 suave <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">45–60 min · tono ligero</div>
+      <div class="bknote">Más corta que el miércoles. Objetivo: activar circulación sin fatigar las piernas que ya trabajaron en el gym. El viernes descansás — esta no tiene que ser intensa.</div>
+      <div class="bkwatts">Zona 2 baja: 149–175W</div>
+    </div>
+  </div>
+
+  <!-- F1 VIE -->
+  <div class="day-content" id="f1-vie">
+    <div class="dhead rest"><div class="dlabel rest">Viernes · Fase 1</div><div class="dtitle">Z1 opcional</div><div class="dsub">Descanso o rodada muy suave</div></div>
+    <div class="tip"><div class="ticon">💡</div><div class="ttext">Si el cuerpo está bien, 45 min de Z1 puro (<149W). Si hay fatiga de la semana, descanso total. El viernes existe para que el sábado salgas bien descansado para la salida larga.</div></div>
+    <div class="bikecard z1">
+      <div class="bktitle">🚴 Z1 muy suave (si se hace) <span class="bkzone">Z1</span></div>
+      <div class="bkdetail">30–45 min · <149W · opcional</div>
+      <div class="bknote">Ritmo absolutamente conversacional. Si la mente pide más intensidad, recordar que el sábado es la sesión importante, no el viernes.</div>
+    </div>
+  </div>
+
+  <!-- F1 SAB -->
+  <div class="day-content" id="f1-sab">
+    <div class="dhead f1"><div class="dlabel f1">Sábado · Fase 1</div><div class="dtitle">SALIDA LARGA Z2</div><div class="dsub">El entrenamiento más importante de la semana</div><div class="dmeta"><div class="badge r">🚴 2–2.5h</div><div class="badge r">Z2 constante</div></div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Salida larga — Base aeróbica <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">2h00–2h30 · 149–202W · FC 130–145</div>
+      <div class="bknote">La sesión de la semana. Ritmo conversacional estricto — si no se puede hablar, está muy rápido. Progresión a lo largo de la Fase 1:<br><br>• Sem 1–2: 2h00<br>• Sem 3–4: 2h15<br>• Sem 5–7: 2h30<br><br>Terreno con algo de desnivel si es posible, pero sin subidas que fuercen salirse de Z2.</div>
+      <div class="bkwatts">Zona 2: 149–202W · objetivo: tiempo en zona, no velocidad media</div>
+    </div>
+    <div class="tip"><div class="ticon">🔋</div><div class="ttext"><strong>Nutrición en rodada:</strong> desde los 60 min, 1 gel o fruta cada 40 min. Hidratación constante. Practicar ahora lo que se va a usar en carrera el 7 de noviembre.</div></div>
+  </div>
+
+  <!-- F1 DOM -->
+  <div class="day-content" id="f1-dom">
+    <div class="dhead rest"><div class="dlabel rest">Domingo · Fase 1</div><div class="dtitle">Bici Z2 opcional</div><div class="dsub">Segundo bloque aeróbico o descanso</div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 moderada (si hay energía) <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60–75 min · 149–202W</div>
+      <div class="bknote">Si el sábado fue bien y las piernas responden, sumar esta sesión consolida la base. Si hubo fatiga del sábado, descanso sin culpa. La recuperación también es entrenamiento.</div>
+    </div>
+    <div class="checkpoint">
+      <div class="cp-title">✅ Check semanal Fase 1</div>
+      <div class="cp-item"><span>🚴</span><div>¿Completaste la salida larga del sábado?</div></div>
+      <div class="cp-item"><span>🏋️</span><div>¿Subiste la carga en peso muerto y sentadilla vs semana pasada?</div></div>
+      <div class="cp-item"><span>😴</span><div>¿Promediaste ≥7h de sueño esta semana?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FASE 2 ══════════════ -->
+<div class="phase-wrap" id="pw-f2">
+
+  <!-- F2 LUN -->
+  <div class="day-content active" id="f2-lun">
+    <div class="dhead rest"><div class="dlabel rest">Lunes · Fase 2</div><div class="dtitle">Descanso</div><div class="dsub">El fin de semana de esquí pesa — descanso real</div></div>
+    <div class="restcard">
+      <div style="font-size:44px;margin-bottom:8px">⛷️😴</div>
+      <div style="font-size:20px;font-weight:800;color:#555">Post-esquí</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5">Dos días en altitud a 2400m+ cargan el cuerpo de maneras distintas al entrenamiento normal. El lunes es recuperación obligatoria.</div>
+    </div>
+  </div>
+
+  <!-- F2 MAR -->
+  <div class="day-content" id="f2-mar">
+    <div class="dhead f2"><div class="dlabel f2">Martes · Fase 2</div><div class="dtitle">GYM MANT. + THRESHOLD + VOLEY</div><div class="dsub">Mantención de fuerza · Umbral semanal</div><div class="dmeta"><div class="badge p">🏋️ Gym mant.</div><div class="badge o">🔥 Threshold</div><div class="badge y">🏐 Voley</div></div></div>
+    <div class="stitle">Gym AM — Mantención (reducido)</div>
+    <div class="tip"><div class="ticon">🏋️</div><div class="ttext">En Fase 2 el gym no agrega fuerza, la conserva. <strong>3×5 @ 85% 1RM</strong> es suficiente. Si el cuerpo viene cargado del esquí, bajar a 3×3 sin culpa.</div></div>
+    <div class="ex"><div class="exn">1</div><div><div class="exname">Peso Muerto</div><div class="exmeta"><div class="extag">3 series</div><div class="extag">5 reps</div><div class="extag n">@85% 1RM</div><div class="extag n">⏳ 2.5 min</div></div><div class="exnote">Sin testing, sin máximos. Mantener lo ganado en Fase 1. Si las piernas vienen del esquí, priorizar recuperación sobre carga.</div></div></div>
+    <div class="ex"><div class="exn">2</div><div><div class="exname">Remo con Barra</div><div class="exmeta"><div class="extag">3 series</div><div class="extag">6 reps</div><div class="extag n">@80% 1RM</div><div class="extag n">⏳ 2 min</div></div><div class="exnote">Mantención de espalda. Menos volumen que Fase 1, misma técnica.</div></div></div>
+    <div class="stitle">Tarde — Threshold (sesión clave de mantención)</div>
+    <div class="bikecard z4">
+      <div class="bktitle">🔥 Intervalos umbral <span class="bkzone">Z4</span></div>
+      <div class="bkdetail">2 × 15–20 min @ FTP · descanso 5 min entre bloques</div>
+      <div class="bknote">Esta sesión impide que el FTP retroceda durante el bloque de esquí. Cal. 15 min Z2 → 2 bloques → 10 min vuelta a calma. Si un día hay mucho cansancio, bajar a 2×12 min — lo importante es la constancia semanal.</div>
+      <div class="bkwatts">Zona 4: 243–270W (90–100% FTP actual)</div>
+    </div>
+  </div>
+
+  <!-- F2 MIE -->
+  <div class="day-content" id="f2-mie">
+    <div class="dhead f2"><div class="dlabel f2">Miércoles · Fase 2</div><div class="dtitle">BICI Z2</div><div class="dsub">Mantención aeróbica entre semana</div><div class="dmeta"><div class="badge b">🚴 Z2 60–75 min</div></div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 moderada <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60–75 min · 149–202W</div>
+      <div class="bknote">Mantener la base aeróbica sin sobrecargar. Volumen reducido vs Fase 1 porque el esquí de fin de semana ya da estímulo cardiovascular. Cadencia 88–92 rpm.</div>
+      <div class="bkwatts">Zona 2: 149–202W</div>
+    </div>
+  </div>
+
+  <!-- F2 JUE -->
+  <div class="day-content" id="f2-jue">
+    <div class="dhead f2"><div class="dlabel f2">Jueves · Fase 2</div><div class="dtitle">GYM MANT. + Z1 SUAVE + VOLEY</div><div class="dsub">Tren superior · Piernas frescas para el fin de semana</div><div class="dmeta"><div class="badge p">🏋️ Gym mant.</div><div class="badge b">🚴 Z1</div><div class="badge y">🏐 Voley</div></div></div>
+    <div class="stitle">Gym AM — Solo tren superior (sin piernas)</div>
+    <div class="tip"><div class="ticon">💡</div><div class="ttext">El jueves de Fase 2 <strong>no se hace sentadilla ni peso muerto</strong> — las piernas se necesitan frescas para el esquí del sábado. Solo tren superior.</div></div>
+    <div class="ex"><div class="exn s">1</div><div><div class="exname">Sentadilla + Bench (si no hay esquí el sábado)</div><div class="exmeta"><div class="extag s">3 series</div><div class="extag s">5 reps</div><div class="extag n">@85% 1RM</div></div><div class="exnote">Solo si el fin de semana no hay esquí. Si hay esquí, saltar la sentadilla y hacer solo bench + press militar.</div></div></div>
+    <div class="ex"><div class="exn s">2</div><div><div class="exname">Press de Banca + Press Militar</div><div class="exmeta"><div class="extag s">3 series c/u</div><div class="extag s">5 reps</div><div class="extag n">@85% 1RM</div></div><div class="exnote">Tren superior siempre — no afecta las piernas para el esquí.</div></div></div>
+    <div class="stitle">Tarde — Z1 suave</div>
+    <div class="bikecard z1">
+      <div class="bktitle">🚴 Rodada suave <span class="bkzone">Z1</span></div>
+      <div class="bkdetail">45 min · &lt;149W · piernas frescas</div>
+      <div class="bknote">Solo mover las piernas. La sesión importante de la semana ya fue el martes. Prioridad: llegar fresco al sábado de esquí.</div>
+    </div>
+  </div>
+
+  <!-- F2 VIE -->
+  <div class="day-content" id="f2-vie">
+    <div class="dhead rest"><div class="dlabel rest">Viernes · Fase 2</div><div class="dtitle">Descanso</div><div class="dsub">Preparación para el esquí del sábado</div></div>
+    <div class="restcard">
+      <div style="font-size:44px;margin-bottom:8px">⛷️</div>
+      <div style="font-size:20px;font-weight:800;color:#555">Descanso total</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5">Si hay esquí mañana: descanso obligatorio.<br>Si no hay esquí: bici Z1 45 min opcional.</div>
+    </div>
+    <div class="tip"><div class="ticon">⛷️</div><div class="ttext"><strong>Pre-esquí:</strong> hidratarse bien el viernes, dormir 8h, desayuno completo el sábado antes de subir. La altitud a 2400m deshidrata más de lo que parece.</div></div>
+  </div>
+
+  <!-- F2 SAB -->
+  <div class="day-content" id="f2-sab">
+    <div class="dhead f2"><div class="dlabel f2">Sábado · Fase 2</div><div class="dtitle">ESQUÍ ⛷️</div><div class="dsub">Altitud 2400m+ · Estímulo eritropoyético</div><div class="dmeta"><div class="badge b">⛷️ 2400m+</div><div class="badge b">EPO natural</div></div></div>
+    <div class="bikecard ski">
+      <div class="bktitle">⛷️ Día de esquí <span class="bkzone">Altitud</span></div>
+      <div class="bkdetail">Día completo en montaña · 2400m+ de altitud</div>
+      <div class="bknote">El esquí en altura no es descanso — es entrenamiento cruzado de alta calidad. Cada fin de semana sobre 2400m estimula la producción de eritropoyetina endógena (EPO). Tras 8–10 semanas de exposición, hay más glóbulos rojos disponibles para transportar oxígeno. Eso se paga en watts en septiembre.<br><br><strong>Hidratación:</strong> +500ml/día sobre lo habitual en altura. <strong>Alimentación:</strong> el cuerpo quema más calorías en frío y altitud — no subestimar.</div>
+    </div>
+    <div class="tip"><div class="ticon">🔴</div><div class="ttext"><strong>No hace falta ir al límite</strong> — el beneficio viene de estar en altitud, no de bajadas a máxima velocidad. Disfrutar el esquí es parte del plan.</div></div>
+  </div>
+
+  <!-- F2 DOM -->
+  <div class="day-content" id="f2-dom">
+    <div class="dhead f2"><div class="dlabel f2">Domingo · Fase 2</div><div class="dtitle">ESQUÍ o BICI Z2</div><div class="dsub">Segundo día en altura o rodada de base</div></div>
+    <div class="bikecard ski">
+      <div class="bktitle">⛷️ Segundo día de esquí (si aplica) <span class="bkzone">Altitud</span></div>
+      <div class="bkdetail">Día completo en montaña · acumular altitud</div>
+      <div class="bknote">Si hay dos días de montaña disponibles, el domingo es el segundo. Más horas de exposición = más adaptación. Si el cuerpo está cargado del sábado, bajar la intensidad en pista.</div>
+    </div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Alternativa: Bici Z2 <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60–75 min · 149–202W · si no hay esquí</div>
+      <div class="bknote">Si el fin de semana no hubo montaña disponible, rodada Z2 para mantener la base.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FASE 3 ══════════════ -->
+<div class="phase-wrap" id="pw-f3">
+
+  <!-- F3 LUN -->
+  <div class="day-content active" id="f3-lun">
+    <div class="dhead rest"><div class="dlabel rest">Lunes · Fase 3</div><div class="dtitle">Descanso completo</div><div class="dsub">La semana es dura — el lunes es sagrado</div></div>
+    <div class="restcard">
+      <div style="font-size:44px;margin-bottom:8px">😴</div>
+      <div style="font-size:20px;font-weight:800;color:#555">Descanso total</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5">Fase 3 es la más intensa de todo el plan. El cuerpo necesita este día para asimilar el trabajo del fin de semana y prepararse para el martes.</div>
+    </div>
+    <div class="tip"><div class="ticon">🧠</div><div class="ttext"><strong>"El año pasado chupé rueda al límite. Este año elijo cuándo trabajar."</strong> Esta filosofía empieza en el descanso: recuperar bien = salir más fuerte el martes.</div></div>
+  </div>
+
+  <!-- F3 MAR -->
+  <div class="day-content" id="f3-mar">
+    <div class="dhead f3"><div class="dlabel f3">Martes · Fase 3</div><div class="dtitle">GYM LIGERO + VO2MAX + VOLEY</div><div class="dsub">La sesión más dura de la semana</div><div class="dmeta"><div class="badge p">🏋️ Gym mín.</div><div class="badge r">⚡ VO2max</div><div class="badge y">🏐 Voley opt.</div></div></div>
+    <div class="stitle">Gym AM — Solo 2 ejercicios</div>
+    <div class="ex"><div class="exn">1</div><div><div class="exname">Peso Muerto + Remo</div><div class="exmeta"><div class="extag">2–3 × 5</div><div class="extag n">@85% 1RM</div><div class="extag n">⏳ 2.5 min</div></div><div class="exnote">Mínimo necesario para no perder fuerza. Si el VO2max está en la tarde, salir del gym sin fatiga extra. Si hay mucho cansancio, 2×3 y salir.</div></div></div>
+    <div class="stitle">Tarde — VO2max (la sesión rey de Fase 3)</div>
+    <div class="bikecard z5">
+      <div class="bktitle">⚡ Intervalos VO2max <span class="bkzone">Z5</span></div>
+      <div class="bkdetail">5 × 5 min @ 110–120% FTP · descanso 5 min activo</div>
+      <div class="bknote">Cal. 15 min Z2 → 5 repeticiones → 10 min vuelta a calma. Total: ~65 min. Estos intervalos son los que suben el FTP real. Progresión en la fase:<br>• Sem 1–2: 4×5 min<br>• Sem 3–4: 5×5 min<br>• Sem 5–6: 6×5 min (si se completan bien)<br><br>Si no se pueden completar con buena potencia, menos bloques con más calidad.</div>
+      <div class="bkwatts">Zona 5: 297–324W (110–120% de 270W) → recalcular si FTP ya subió</div>
+    </div>
+    <div class="tip"><div class="ticon">🏐</div><div class="ttext">Voley después del VO2max es opcional — si el cuerpo está destrozado, priorizar la recuperación para el jueves de threshold.</div></div>
+  </div>
+
+  <!-- F3 MIE -->
+  <div class="day-content" id="f3-mie">
+    <div class="dhead f3"><div class="dlabel f3">Miércoles · Fase 3</div><div class="dtitle">RECUPERACIÓN ACTIVA Z2</div><div class="dsub">Limpiar lactato del martes · no más</div><div class="dmeta"><div class="badge o">🚴 Z2 suave</div></div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 recuperación <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60–75 min · 149–175W · cadencia alta 95+ rpm</div>
+      <div class="bknote">El miércoles de Fase 3 no es para entrenar — es para recuperar del martes y llegar bien al jueves de threshold. Cadencia alta (95+ rpm) con potencia baja. Si las piernas están muy cargadas, 45 min o descanso.</div>
+    </div>
+    <div class="tip"><div class="ticon">💡</div><div class="ttext">La tentación de "agregar un poco de intensidad" el miércoles es el error más común de Fase 3. Respetar la Z2 acumula la fatiga correctamente para el sábado de race pace.</div></div>
+  </div>
+
+  <!-- F3 JUE -->
+  <div class="day-content" id="f3-jue">
+    <div class="dhead f3"><div class="dlabel f3">Jueves · Fase 3</div><div class="dtitle">GYM MÍN. + THRESHOLD + VOLEY</div><div class="dsub">Umbral semanal · segunda sesión intensa</div><div class="dmeta"><div class="badge p">🏋️ Gym mín.</div><div class="badge o">🔥 Threshold</div><div class="badge y">🏐 Voley</div></div></div>
+    <div class="stitle">Gym AM — Solo tren superior (sin piernas)</div>
+    <div class="ex"><div class="exn s">1</div><div><div class="exname">Bench Press + Press Militar</div><div class="exmeta"><div class="extag s">2–3 × 5</div><div class="extag n">@85% 1RM</div><div class="extag n">⏳ 2 min</div></div><div class="exnote">El jueves de Fase 3 no hay piernas — el threshold de la tarde y la salida del sábado las necesitan. Solo tren superior.</div></div></div>
+    <div class="stitle">Tarde — Threshold</div>
+    <div class="bikecard z4">
+      <div class="bktitle">🔥 2 × 20 min threshold <span class="bkzone">Z4</span></div>
+      <div class="bkdetail">2 × 20 min @ FTP real · descanso 5 min</div>
+      <div class="bknote">El pan y mantequilla del ciclismo competitivo. Progresión a lo largo de la fase:<br>• Sem 1: 2×15 min (si es la primera vez)<br>• Sem 3: 2×20 min<br>• Sem 5: 3×15 min<br><br>Deben doler pero ser sostenibles. Si no se puede terminar el segundo bloque, la potencia está demasiado alta.</div>
+      <div class="bkwatts">Zona 4: 270–284W → subir con el FTP a medida que avanza la fase</div>
+    </div>
+  </div>
+
+  <!-- F3 VIE -->
+  <div class="day-content" id="f3-vie">
+    <div class="dhead rest"><div class="dlabel rest">Viernes · Fase 3</div><div class="dtitle">Z1 suave</div><div class="dsub">Preparar las piernas para el sábado de race pace</div></div>
+    <div class="bikecard z1">
+      <div class="bktitle">🚴 Z1 suave <span class="bkzone">Z1</span></div>
+      <div class="bkdetail">30–45 min · &lt;149W</div>
+      <div class="bknote">Solo activar circulación. El sábado de race pace es la sesión más importante de la semana — llegar con las piernas bien descansadas.</div>
+    </div>
+  </div>
+
+  <!-- F3 SAB -->
+  <div class="day-content" id="f3-sab">
+    <div class="dhead f3"><div class="dlabel f3">Sábado · Fase 3</div><div class="dtitle">SALIDA RACE PACE 🏁</div><div class="dsub">La sesión más específica del plan</div><div class="dmeta"><div class="badge o">🚴 2.5–3h</div><div class="badge r">🔥 Race pace</div></div></div>
+    <div class="bikecard race">
+      <div class="bktitle">🏁 Salida race pace <span class="bkzone">Race</span></div>
+      <div class="bkdetail">2.5–3h total · con 2 × 20 min a ritmo de carrera</div>
+      <div class="bknote">Simular las condiciones del 7 de noviembre. Estructura:<br><br><strong>0–30 min:</strong> calentamiento Z2<br><strong>30–50 min:</strong> primer bloque race pace (250–270W)<br><strong>50–80 min:</strong> Z2 de recuperación<br><strong>80–100 min:</strong> segundo bloque race pace<br><strong>100–fin:</strong> Z2 → últimos 20 min apretar aunque estés cansado<br><br>Esos últimos 20 min cansado = km 90 del Lago Ranco.</div>
+      <div class="bkwatts">NP objetivo: 255–275W · Race pace bloques: 260–280W</div>
+    </div>
+    <div class="tip"><div class="ticon">📊</div><div class="ttext"><strong>Semana 5 de Fase 3 (oct 13–19): FTP test.</strong> Si todo salió bien, esperar 305–320W. Con eso, el sub 3h05 en Lago Ranco está en alcance real.</div></div>
+  </div>
+
+  <!-- F3 DOM -->
+  <div class="day-content" id="f3-dom">
+    <div class="dhead f3"><div class="dlabel f3">Domingo · Fase 3</div><div class="dtitle">BICI Z2 MODERADA</div><div class="dsub">Consolidar la adaptación del sábado</div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 moderada <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60–90 min · 149–202W</div>
+      <div class="bknote">Piernas cansadas del sábado — completar esta sesión aunque cueste más que de costumbre. Esa sensación de completar Z2 con fatiga acumulada es exactamente lo que prepara para los últimos 30 km de carrera.</div>
+      <div class="bkwatts">Zona 2: 149–202W</div>
+    </div>
+    <div class="checkpoint">
+      <div class="cp-title">✅ Check semanal Fase 3</div>
+      <div class="cp-item"><span>⚡</span><div>¿Completaste todos los bloques de VO2max del martes?</div></div>
+      <div class="cp-item"><span>🔥</span><div>¿Los 2×20 threshold del jueves se sostuvieron con buena potencia?</div></div>
+      <div class="cp-item"><span>🏁</span><div>¿La salida race pace del sábado incluyó los dos bloques a ritmo carrera?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FASE 4 (TAPER) ══════════════ -->
+<div class="phase-wrap" id="pw-f4">
+
+  <!-- F4 DOM2 -->
+  <div class="day-content active" id="f4-d1">
+    <div class="dhead f4"><div class="dlabel f4">Domingo 2 nov · Taper día 1</div><div class="dtitle">Z2 + STRIDES</div><div class="dsub">Última sesión de volumen real</div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">🚴 Z2 + activaciones <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">60 min Z2 + 4 × 30 seg de esfuerzo corto</div>
+      <div class="bknote">60 min en Z2 normal + al final, 4 repeticiones de 30 seg de esfuerzo (no sprint, solo empuje sostenido). El cuerpo empieza a bajar el volumen pero mantiene el recuerdo de la intensidad.</div>
+    </div>
+  </div>
+
+  <!-- F4 LUN3 -->
+  <div class="day-content" id="f4-d2">
+    <div class="dhead rest"><div class="dlabel rest">Lunes 3 nov · Taper día 2</div><div class="dtitle">Descanso completo</div></div>
+    <div class="restcard">
+      <div style="font-size:44px;margin-bottom:8px">😴</div>
+      <div style="font-size:20px;font-weight:800;color:#555">Descanso</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5">Movilidad 15 min si quieres. Nada más.</div>
+    </div>
+    <div class="tip"><div class="ticon">🧠</div><div class="ttext"><strong>El taper asusta.</strong> Sentirás que no entrenás suficiente. Es normal — el cuerpo necesita 5–7 días para supercompensar. No agregar sesiones extra "para estar seguro". El trabajo ya está hecho.</div></div>
+  </div>
+
+  <!-- F4 MAR4 -->
+  <div class="day-content" id="f4-d3">
+    <div class="dhead f4"><div class="dlabel f4">Martes 4 nov · Taper día 3</div><div class="dtitle">ACTIVACIÓN CON INTENSIDAD</div><div class="dsub">Confirmar que las piernas responden</div></div>
+    <div class="bikecard z4">
+      <div class="bktitle">⚡ Activación con bloques cortos <span class="bkzone">Z4</span></div>
+      <div class="bkdetail">20 min Z2 → 3 × 5 min @ FTP → 10 min vuelta a calma</div>
+      <div class="bknote">Total 45 min. El objetivo no es el estímulo de entrenamiento — es confirmar que las piernas sienten la potencia y responden bien. Si los 5 min a FTP se sienten controlables, todo está en orden.</div>
+    </div>
+  </div>
+
+  <!-- F4 MIE5 -->
+  <div class="day-content" id="f4-d4">
+    <div class="dhead rest"><div class="dlabel rest">Miércoles 5 nov · Taper día 4</div><div class="dtitle">20 min Z1</div><div class="dsub">Solo mover las piernas</div></div>
+    <div class="bikecard z1">
+      <div class="bktitle">🚴 Z1 mínimo <span class="bkzone">Z1</span></div>
+      <div class="bkdetail">20 min · &lt;149W · sin esfuerzo</div>
+      <div class="bknote">Mantener las piernas activas sin ningún esfuerzo real. Puede ser en rodillo para no arriesgar nada.</div>
+    </div>
+  </div>
+
+  <!-- F4 JUE6 -->
+  <div class="day-content" id="f4-d5">
+    <div class="dhead f4"><div class="dlabel f4">Jueves 6 nov · Taper día 5</div><div class="dtitle">ACTIVACIÓN FINAL</div><div class="dsub">Última puesta a punto antes del viaje</div></div>
+    <div class="bikecard z2">
+      <div class="bktitle">⚡ Activación final <span class="bkzone">Z2</span></div>
+      <div class="bkdetail">10 min Z2 + 3 × 30 seg de esfuerzo suave</div>
+      <div class="bknote">15 min total. Activar el sistema sin gastar nada. Confirmar que la bici está en perfecto estado mecánico, revisar equipamiento, preparar bolso de carrera.</div>
+    </div>
+    <div class="tip"><div class="ticon">🎒</div><div class="ttext"><strong>Checklist equipo:</strong> bici revisada mecánicamente, neumáticos, frenos. Geles, bidones, ropa de carrera, zapatillas. Nada nuevo el día de la carrera — solo lo que se usó en entrenamiento.</div></div>
+  </div>
+
+  <!-- F4 VIE7 -->
+  <div class="day-content" id="f4-d6">
+    <div class="dhead rest"><div class="dlabel rest">Viernes 7 nov · Taper día 6</div><div class="dtitle">Descanso + Viaje</div><div class="dsub">Llegada a Lago Ranco · Preparación</div></div>
+    <div class="restcard">
+      <div style="font-size:44px;margin-bottom:8px">🚗</div>
+      <div style="font-size:20px;font-weight:800;color:#555">Viaje y preparación</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5">Llegada a Lago Ranco. Hidratación máxima todo el día.</div>
+    </div>
+    <div class="tip"><div class="ticon">🍝</div><div class="ttext"><strong>Cena:</strong> pasta o arroz — carbohidratos simples, nada nuevo ni experimental. Sin fibra alta ni comidas pesadas. Dormir temprano, alarma con tiempo de sobra.</div></div>
+    <div class="tip"><div class="ticon">☕</div><div class="ttext"><strong>Mañana de carrera:</strong> desayuno 3h antes (avena + banana + café). 200mg cafeína 45 min antes de la salida. 1 gel o banana 10 min antes. Desde km 30: 1 gel cada 35–40 min.</div></div>
+  </div>
+
+  <!-- F4 SAB — RACE DAY -->
+  <div class="day-content" id="f4-d7">
+    <div class="dhead f4"><div class="dlabel f4">Sábado 7 noviembre 2026 🏁</div><div class="dtitle">LAGO RANCO</div><div class="dsub">Scotiabank Grand Prix · 114 km · 1.400m+</div><div class="dmeta"><div class="badge g">Meta: &lt;3h05</div><div class="badge g">PR anterior: 3h21</div></div></div>
+    <div class="racecard">
+      <h2>🏁 Race Day</h2>
+      <p>114 km · 1.400m desnivel · sub 3h05</p>
+      <div class="race-stats">
+        <div><div class="rs-val">3h05</div><div class="rs-label">meta</div></div>
+        <div><div class="rs-val">-16'</div><div class="rs-label">vs PR</div></div>
+        <div><div class="rs-val">315W</div><div class="rs-label">FTP meta</div></div>
+      </div>
+    </div>
+    <div class="stitle">Estrategia por tramos</div>
+    <div class="bikecard z2">
+      <div class="bktitle">Km 0–30 · Salida</div>
+      <div class="bknote">No explotarse en la emoción del pelotón. Z2 alto, no superar FTP aunque todos arranquen rápido. Las primeras subidas no son donde se gana — son donde se pierde.</div>
+    </div>
+    <div class="bikecard z4">
+      <div class="bktitle">Km 30–70 · Desarrollo <span class="bkzone">Z3–Z4</span></div>
+      <div class="bknote">Z3 sostenido con subidas en Z4. Aquí el FTP de 315W+ marca la diferencia vs los que van a 270W. Tomar gel/alimento cada 40 min sin falta.</div>
+    </div>
+    <div class="bikecard z5">
+      <div class="bktitle">Km 70–100 · Decisión <span class="bkzone">Z4–Z5</span></div>
+      <div class="bknote">Si las piernas responden, este es el momento de "elegir cuándo trabajar". Subidas en Z4–Z5, bajadas en Z2. Las 28 semanas de entrenamiento existen para este tramo.</div>
+    </div>
+    <div class="bikecard race">
+      <div class="bktitle">Km 100–114 · Final <span class="bkzone">Todo</span></div>
+      <div class="bkdetail">Vaciar el tanque</div>
+      <div class="bknote">Todo lo que quede de glucógeno y voluntad. El entrenamiento de 28 semanas se paga en estos últimos 14 km. NP objetivo carrera: 265–285W.</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="nb active" id="nav-plan" onclick="showSection('plan')"><span class="ni">🚴</span>Plan</button>
+  <button class="nb" id="nav-metricas" onclick="showSection('metricas')"><span class="ni">📊</span>Métricas</button>
+  <button class="nb" id="nav-palancas" onclick="showSection('palancas')"><span class="ni">💡</span>Palancas</button>
+</div>
+
+<!-- MÉTRICAS -->
+<div id="sec-metricas">
+  <div style="font-size:17px;font-weight:800;margin-bottom:12px">Objetivos noviembre 2026</div>
+  <div class="metric-table">
+    <div class="mt-header"><h3>Progreso objetivo completo</h3></div>
+    <div class="mt-colhead"><span style="flex:1">Métrica</span><span style="width:65px;text-align:center">Hoy</span><span style="width:90px;text-align:center">Meta nov</span><span style="width:55px;text-align:right">Delta</span></div>
+    <div class="mt-row"><div class="mt-label">🚴 FTP</div><div class="mt-now">270W</div><div class="mt-goal">315–340W</div><div class="mt-delta">+17–26%</div></div>
+    <div class="mt-row"><div class="mt-label">⚡ W/kg</div><div class="mt-now">3.0</div><div class="mt-goal">3.5–3.8</div><div class="mt-delta">+0.5–0.8</div></div>
+    <div class="mt-row"><div class="mt-label">🏋️ Sentadilla</div><div class="mt-now">125 kg</div><div class="mt-goal">140 kg</div><div class="mt-delta">+15 kg</div></div>
+    <div class="mt-row"><div class="mt-label">🏋️ Peso Muerto</div><div class="mt-now">152 kg</div><div class="mt-goal">170 kg</div><div class="mt-delta">+18 kg</div></div>
+    <div class="mt-row"><div class="mt-label">🏋️ Bench Press</div><div class="mt-now">85 kg</div><div class="mt-goal">95 kg</div><div class="mt-delta">+10 kg</div></div>
+    <div class="mt-row"><div class="mt-label">😴 Sueño</div><div class="mt-now">6h45</div><div class="mt-goal">7h30+</div><div class="mt-delta">+45 min</div></div>
+    <div class="mt-row"><div class="mt-label">🏁 Tiempo carrera</div><div class="mt-now">3h21</div><div class="mt-goal">&lt;3h05</div><div class="mt-delta">-16 min</div></div>
+  </div>
+  <div class="stitle">Zonas de potencia (FTP 270W)</div>
+  <div style="border-radius:12px;overflow:hidden;margin-bottom:10px">
+    <div class="zt-row"><div class="zt-zone" style="color:#6b7280">Z1</div><div class="zt-name">Recuperación</div><div class="zt-watts" style="color:#6b7280">&lt;149W</div></div>
+    <div class="zt-row"><div class="zt-zone" style="color:#22c55e">Z2</div><div class="zt-name">Aeróbico</div><div class="zt-watts" style="color:#22c55e">149–202W</div></div>
+    <div class="zt-row"><div class="zt-zone" style="color:#f59e0b">Z3</div><div class="zt-name">Tempo</div><div class="zt-watts" style="color:#f59e0b">203–243W</div></div>
+    <div class="zt-row"><div class="zt-zone" style="color:#f97316">Z4</div><div class="zt-name">Umbral (FTP)</div><div class="zt-watts" style="color:#f97316">244–284W</div></div>
+    <div class="zt-row"><div class="zt-zone" style="color:#ef4444">Z5</div><div class="zt-name">VO2max</div><div class="zt-watts" style="color:#ef4444">285–324W</div></div>
+    <div class="zt-row"><div class="zt-zone" style="color:#dc2626">Z6+</div><div class="zt-name">Anaeróbico</div><div class="zt-watts" style="color:#dc2626">&gt;325W</div></div>
+  </div>
+  <div class="tip"><div class="ticon">📈</div><div class="ttext"><strong>Recalcular zonas tras cada FTP test.</strong> Si el test de Fase 1 semana 7 da 285W, los intervalos de umbral pasan a 257–299W. Entrenar con zonas vencidas = entrenar en la zona equivocada.</div></div>
+</div>
+
+<!-- PALANCAS -->
+<div id="sec-palancas">
+  <div style="font-size:17px;font-weight:800;margin-bottom:4px">Las 3 palancas</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Mayor retorno por unidad de esfuerzo</div>
+  <div class="palanca p1">
+    <div class="pal-num">01</div>
+    <div class="pal-title">😴 Sueño — de 6h45 a 7h30+</div>
+    <div class="pal-sub">La hormona de crecimiento se secreta en las primeras horas de sueño profundo. Sin sueño: el gym no construye músculo, los intervalos no construyen FTP, el cuerpo va en modo cortisol. Pasar de 6h45 a 7h30 equivale a 15–20W extra de FTP sin cambiar nada más. Es el ajuste más subestimado del ciclismo de resistencia.</div>
+  </div>
+  <div class="palanca p2">
+    <div class="pal-num">02</div>
+    <div class="pal-title">🩸 Ferritina adecuada</div>
+    <div class="pal-sub">Con ferritina baja, el cuerpo no puede maximizar el transporte de oxígeno aunque el corazón y los pulmones estén perfectos. Las semanas de esquí en altitud solo sirven si hay suficiente hierro para producir los glóbulos rojos que la altitud estimula. Examen antes del 14 junio — si está baja, suplementar inmediatamente. Sin esto, la altitud no rinde.</div>
+  </div>
+  <div class="palanca p3">
+    <div class="pal-num">03</div>
+    <div class="pal-title">📅 Constancia Fases 1 y 2</div>
+    <div class="pal-sub">La Fase 3 cosecha lo que sembraron las Fases 1 y 2. No al revés. Siete semanas de Z2 constante + fuerza construyen un motor que, cuando lleguen los intervalos, responde. Trece semanas de esquí + threshold semanal construyen el sistema aeróbico en altura. Fases 1 y 2 completas = Fase 3 explosiva.</div>
+  </div>
+  <div class="tip"><div class="ticon">🎯</div><div class="ttext"><strong>Pasos esta semana:</strong> FTP test martes 28 abr · pedir examen ferritina · primera semana del plan. El sub 3h05 empieza hoy.</div></div>
+</div>
+
+<script>
+var phases={
+  f1:{name:'FASE 1',days:[['lun','LUN'],['mar','MAR'],['mie','MIÉ'],['jue','JUE'],['vie','VIE'],['sab','SÁB'],['dom','DOM']]},
+  f2:{name:'FASE 2',days:[['lun','LUN'],['mar','MAR'],['mie','MIÉ'],['jue','JUE'],['vie','VIE'],['sab','SÁB'],['dom','DOM']]},
+  f3:{name:'FASE 3',days:[['lun','LUN'],['mar','MAR'],['mie','MIÉ'],['jue','JUE'],['vie','VIE'],['sab','SÁB'],['dom','DOM']]},
+  f4:{name:'FASE 4',days:[['d1','DOM 2'],['d2','LUN 3'],['d3','MAR 4'],['d4','MIÉ 5'],['d5','JUE 6'],['d6','VIE 7'],['d7','🏁 SÁB 7']]}
+};
+var currentPhase='f1';var currentDay='lun';
+
+function buildDayTabs(phase){
+  var dt=document.getElementById('dayTabs');
+  dt.innerHTML='';
+  var days=phases[phase].days;
+  days.forEach(function(d,i){
+    var btn=document.createElement('div');
+    btn.className='dtab'+(i===0?' active':'');
+    btn.textContent=d[1];
+    btn.onclick=(function(dd){return function(){showDay(currentPhase,dd);};})(d[0]);
+    dt.appendChild(btn);
+  });
+}
+
+function showFase(f){
+  document.querySelectorAll('.phase-wrap').forEach(function(p){p.classList.remove('active');p.style.display='none';});
+  document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('active');});
+  var fw=document.getElementById('pw-'+f);
+  fw.classList.add('active');fw.style.display='block';
+  var ftabs=document.querySelectorAll('.ftab');
+  var fi=['f1','f2','f3','f4'].indexOf(f);
+  ftabs[fi].classList.add('active');
+  currentPhase=f;
+  var firstDay=phases[f].days[0][0];
+  buildDayTabs(f);
+  showDay(f,firstDay);
+  showSection('plan',true);
+}
+
+function showDay(phase,day){
+  var pw=document.getElementById('pw-'+phase);
+  pw.querySelectorAll('.day-content').forEach(function(d){d.classList.remove('active');d.style.display='none';});
+  var dc=document.getElementById(phase+'-'+day);
+  if(dc){dc.classList.add('active');dc.style.display='block';}
+  var dtabs=document.getElementById('dayTabs').querySelectorAll('.dtab');
+  var days=phases[phase].days;
+  dtabs.forEach(function(t,i){
+    t.classList.remove('active');
+    if(days[i][0]===day)t.classList.add('active');
+  });
+  currentDay=day;
+}
+
+function showSection(s,silent){
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('active');});
+  var ft=document.getElementById('faseTabs');
+  var dt=document.getElementById('dayTabs');
+  var met=document.getElementById('sec-metricas');
+  var pal=document.getElementById('sec-palancas');
+  [met,pal].forEach(function(x){x.style.display='none';});
+  if(s==='plan'){
+    ft.style.display='flex';dt.style.display='flex';
+    document.querySelectorAll('.phase-wrap').forEach(function(p){p.style.display=p.classList.contains('active')?'block':'none';});
+    document.getElementById('nav-plan').classList.add('active');
+  }else if(s==='metricas'){
+    ft.style.display='none';dt.style.display='none';
+    document.querySelectorAll('.phase-wrap').forEach(function(p){p.style.display='none';});
+    met.style.display='block';document.getElementById('nav-metricas').classList.add('active');
+  }else if(s==='palancas'){
+    ft.style.display='none';dt.style.display='none';
+    document.querySelectorAll('.phase-wrap').forEach(function(p){p.style.display='none';});
+    pal.style.display='block';document.getElementById('nav-palancas').classList.add('active');
+  }
+}
+
+// Init
+document.querySelectorAll('.phase-wrap').forEach(function(p){if(!p.classList.contains('active'))p.style.display='none';});
+document.getElementById('pw-f1').querySelectorAll('.day-content').forEach(function(d){if(!d.classList.contains('active'))d.style.display='none';});
+buildDayTabs('f1');
+</script>
+</body>
+</html>
